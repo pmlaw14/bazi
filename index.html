@@ -4,14 +4,14 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Bazi · Wu Xing Chart</title>
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js" crossorigin></script>
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
 <div id="root"></div>
-<script type="text/babel" data-presets="react">
+<script type="text/babel" data-type="module" data-presets="react">
 const { useState } = React;
 
 
@@ -810,164 +810,6 @@ function analyzeNatalHealth(counts) {
   return { weakest: weakest[0], weakestCount: weakest[1], strongest: strongest[0], strongestCount: strongest[1], lines };
 }
 
-function PalmReading({ pillars, counts, dayMaster, dayStemIdx, gender }) {
-  const [imageData, setImageData] = useState(null);
-  const [analysis, setAnalysis] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  const handleFileChange = (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      setError("กรุณาอัปโหลดไฟล์รูปภาพเท่านั้น");
-      return;
-    }
-    setError(null);
-    setAnalysis(null);
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result;
-      const base64 = result.split(",")[1];
-      setImageData({ base64, mediaType: file.type, previewUrl: result });
-    };
-    reader.onerror = () => setError("ไม่สามารถอ่านไฟล์รูปภาพได้ กรุณาลองใหม่");
-    reader.readAsDataURL(file);
-  };
-
-  const buildBaziContext = () => {
-    const dmElement = dayMaster.stemElement;
-    const profile = DAY_MASTER_PROFILE[dayStemIdx];
-    const s = computeDayMasterStrength(pillars, counts, dmElement);
-    const { sanhe, sanhui } = analyzeBranchRelations(pillars);
-    const pattern = computeSpecialPattern(pillars, counts, dmElement, sanhe, sanhui);
-    const favSource = pattern ? pattern.favorable : s.favorable;
-    const favText = favSource.map((f) => `${ELEMENT_TH[f.element]} (${f.role})`).join(", ");
-    return `ธาตุประจำตัว (日主): ${dayMaster.stem} (${ELEMENT_TH[dmElement]}), บุคลิกต้นแบบ: "${profile.archetype}", กำลังธาตุ: ${
-      s.isStrong ? "แข็งแรง" : "อ่อนแอ"
-    }${pattern ? `, รูปดวงพิเศษ: ${pattern.title}` : ""}, ธาตุที่เป็นคุณเรียงลำดับความสำคัญ: ${favText}, เพศ: ${gender === "male" ? "ชาย" : "หญิง"}`;
-  };
-
-  const handleAnalyze = async () => {
-    if (!imageData) return;
-    setLoading(true);
-    setError(null);
-    setAnalysis(null);
-    try {
-      const baziContext = buildBaziContext();
-      const prompt = `คุณคือหมอดูที่เชี่ยวชาญทั้งศาสตร์จีนโบราณ (Bazi/八字) และการดูลายมือ (palmistry) แบบดั้งเดิม
-
-ข้อมูลดวงชะตาตามหลัก Bazi ของผู้ใช้: ${baziContext}
-
-จากรูปลายมือที่แนบมา ช่วยสังเกตเส้นลายมือหลักเท่าที่มองเห็นได้ (เส้นชีวิต เส้นหัวใจ เส้นสมอง เส้นชะตา และเนินต่างๆ) แล้วผสมผสานเข้ากับข้อมูลดวง Bazi ข้างต้น เพื่อสรุปเป็นคำทำนายภาพรวม 2 ส่วนคือ (1) สถานการณ์โดยรวมในปัจจุบัน และ (2) แนวโน้มในอนาคตอันใกล้ เขียนเป็นภาษาไทย โทนอบอุ่นเป็นกันเอง ความยาวประมาณ 200-300 คำ ปิดท้ายด้วยประโยคสั้นๆ ว่านี่เป็นการทำนายเชิงสัญลักษณ์เพื่อการไตร่ตรองและความบันเทิงเท่านั้น`;
-
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-6",
-          max_tokens: 1000,
-          messages: [
-            {
-              role: "user",
-              content: [
-                { type: "image", source: { type: "base64", media_type: imageData.mediaType, data: imageData.base64 } },
-                { type: "text", text: prompt },
-              ],
-            },
-          ],
-        }),
-      });
-
-      if (!response.ok) throw new Error("การเชื่อมต่อล้มเหลว");
-      const data = await response.json();
-      if (data.error) throw new Error(data.error.message || "เกิดข้อผิดพลาด");
-
-      const text = (data.content || [])
-        .map((item) => (item.type === "text" ? item.text : ""))
-        .filter(Boolean)
-        .join("\n");
-      if (!text) throw new Error("ไม่ได้รับผลลัพธ์จากการวิเคราะห์");
-      setAnalysis(text);
-    } catch (err) {
-      setError("เกิดข้อผิดพลาดระหว่างวิเคราะห์ลายมือ กรุณาลองใหม่อีกครั้ง");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="relative px-6 py-8 sm:px-10 sm:py-10" style={cardStyle}>
-      <p style={label}>เสริมด้วยลายมือ · ผสานกับดวง Bazi</p>
-      <h3 className="mt-2 text-xl font-bold sm:text-2xl" style={{ color: COLOR.heading, fontFamily: "'Noto Serif Thai', serif" }}>
-        อัปโหลดรูปลายมือเพื่อวิเคราะห์ร่วมกับดวงชะตา
-      </h3>
-      <p className="mt-2 text-sm" style={{ color: COLOR.muted }}>
-        ถ่ายรูปฝ่ามือให้เห็นเส้นลายมือชัดเจนในที่แสงสว่างเพียงพอ ระบบจะผสานการอ่านลายมือเข้ากับธาตุประจำตัวและกำลังธาตุที่คำนวณไว้ด้านบน
-      </p>
-
-      <div className="mt-4 flex flex-col gap-3">
-        <div
-          className="p-3 text-sm"
-          style={{ borderRadius: "0.25rem", border: `1px dashed ${COLOR.cardBorder}`, backgroundColor: "rgba(0,0,0,0.25)" }}
-        >
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            style={{ color: COLOR.body, width: "100%" }}
-          />
-        </div>
-        {imageData && (
-          <img
-            src={imageData.previewUrl}
-            alt="ตัวอย่างรูปลายมือที่อัปโหลด"
-            className="h-20 w-20 rounded-sm object-cover"
-            style={{ border: `1px solid ${COLOR.cardBorder}` }}
-          />
-        )}
-      </div>
-
-      {error && (
-        <p className="mt-3 text-sm" style={{ color: "#F0958C" }}>
-          {error}
-        </p>
-      )}
-
-      <button
-        type="button"
-        onClick={handleAnalyze}
-        disabled={!imageData || loading}
-        className="bazi-btn mt-4 w-full py-3 text-sm font-bold uppercase transition"
-        style={{
-          backgroundColor: imageData && !loading ? COLOR.seal : COLOR.cardBorder,
-          color: "#fff",
-          letterSpacing: "0.15em",
-          borderRadius: "0.25rem",
-          cursor: imageData && !loading ? "pointer" : "not-allowed",
-        }}
-      >
-        {loading ? "กำลังวิเคราะห์..." : "วิเคราะห์ลายมือผสานกับดวง"}
-      </button>
-
-      {analysis && (
-        <div className="mt-6 p-4 rounded-sm" style={{ backgroundColor: "rgba(0,0,0,0.35)", border: `1px solid ${COLOR.cardBorder}` }}>
-          <p style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.15em", color: COLOR.gold, fontWeight: 600 }}>
-            ผลวิเคราะห์ลายมือผสานดวง Bazi
-          </p>
-          <p className="mt-3 whitespace-pre-line" style={bodyText}>
-            {analysis}
-          </p>
-        </div>
-      )}
-
-      <p className="mt-4 text-xs italic" style={{ color: COLOR.faint }}>
-        การวิเคราะห์รูปภาพลายมือใช้ปัญญาประดิษฐ์ตีความเชิงสัญลักษณ์ตามศาสตร์ดั้งเดิม เพื่อการไตร่ตรองและความบันเทิงเท่านั้น
-        รูปภาพจะถูกส่งไปประมวลผลชั่วคราวเพื่อวิเคราะห์เท่านั้น
-      </p>
-    </div>
-  );
-}
 
 function LifeDomains({ pillars, counts, dayMaster, gender }) {
   const dmElement = dayMaster.stemElement;
@@ -1807,8 +1649,6 @@ function BaziFortuneApp() {
             <HowItWorks />
 
             <Summary pillars={result.pillars} counts={result.counts} dayMaster={result.dayMaster} dayStemIdx={result.dayStemIdx} />
-
-            <PalmReading pillars={result.pillars} counts={result.counts} dayMaster={result.dayMaster} dayStemIdx={result.dayStemIdx} gender={gender} />
 
             <LifeDomains pillars={result.pillars} counts={result.counts} dayMaster={result.dayMaster} gender={gender} />
 
