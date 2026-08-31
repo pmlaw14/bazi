@@ -257,14 +257,64 @@ const SANHUI_GROUPS = [
   { branches: [11, 0, 1], element: "Water", season: "ฤดูหนาว (亥子丑)" },
 ];
 
-// การเถียว (三刑 Sanxing / "ซาเถียว") — นักษัตรที่ขัดแย้งกันตามหลักสามเถียว
+// 三刑 (ขัดแย้ง) — นักษัตรที่ตำราจีนถือว่าขัดแย้ง/เสียดสีพลังกัน
 const SANXING_GROUPS = [
   { branches: [1, 10, 7], type: "triad", name: "อกตัญญู (丑戌未)", meaning: "มักสะท้อนความสัมพันธ์ที่เคยช่วยเหลือเกื้อกูลกันมาก่อน แต่ภายหลังกลับขัดแย้งหรือไม่เห็นคุณค่าของกันและกัน" },
   { branches: [2, 5, 8], type: "triad", name: "ถือเจ้าถือนาย (寅巳申)", meaning: "มักเกี่ยวกับการใช้อำนาจ การแข่งขันชิงดีชิงเด่น หรือความขัดแย้งเรื่องบทบาทหน้าที่และศักดิ์ศรี" },
   { branches: [0, 3], type: "pair", name: "ไร้มารยาท (子卯)", meaning: "มักเกี่ยวกับความสัมพันธ์ที่ขาดความเกรงใจกัน พูดจาไม่ถนอมน้ำใจ หรือขัดแย้งเรื่องค่านิยม" },
 ];
-const SELF_PUNISH_BRANCHES = [4, 6, 9, 11]; // 辰午酉亥 (ซ้ำตัวเองแล้วเถียวตัวเอง)
-const SELF_PUNISH_MEANING = "การเถียวตัวเอง มักสะท้อนความขัดแย้งภายในใจตนเอง ความลังเลในการตัดสินใจ หรือสร้างปัญหาให้ตัวเองโดยไม่รู้ตัว";
+const SELF_PUNISH_BRANCHES = [4, 6, 9, 11]; // 辰午酉亥 (ซ้ำตัวเองเกิด 自刑 ขัดแย้งในตัวเอง)
+const SELF_PUNISH_MEANING = "自刑 (ขัดแย้งในตัวเอง) มักสะท้อนความขัดแย้งภายในใจตนเอง ความลังเลในการตัดสินใจ หรือสร้างปัญหาให้ตัวเองโดยไม่รู้ตัว";
+
+// 六冲 (Liuchong / ชง) — นักษัตรที่ปะทะกันตรงข้ามบนวงล้อ 12 นักษัตร
+const LIUCHONG_PAIRS = [
+  [0, 6], [1, 7], [2, 8], [3, 9], [4, 10], [5, 11],
+];
+// 六合 (Liuhe) — นักษัตรที่จับคู่ประสานกัน
+const LIUHE_PAIRS = [
+  [0, 1], [2, 11], [3, 10], [4, 9], [5, 8], [6, 7],
+];
+
+function isChong(a, b) {
+  return LIUCHONG_PAIRS.some((p) => (p[0] === a && p[1] === b) || (p[0] === b && p[1] === a));
+}
+function isHe(a, b) {
+  return LIUHE_PAIRS.some((p) => (p[0] === a && p[1] === b) || (p[0] === b && p[1] === a));
+}
+
+// ความหมายเฉพาะตำแหน่งเสา (วัง/宮) เมื่อถูกชง (ปะทะ) หรือประสาน (合) จากนักษัตรที่จรเข้ามา
+const PALACE_MEANING_TH = {
+  ปี: {
+    chong: "ปีนี้ปะทะ (ชง) กับหลักปีในดวงเดิม ซึ่งเป็นวังของผู้ใหญ่ในบ้าน พ่อแม่ หรือเจ้านาย/ผู้บังคับบัญชา อาจกระทบเรื่องสุขภาพของท่านเหล่านั้น ความสัมพันธ์ที่ตึงเครียด หรือมีเรื่องให้ปวดหัวเกี่ยวกับผู้ใหญ่ในปีนั้น",
+    he: "ปีนี้ประสาน (合) กับหลักปีในดวงเดิม ซึ่งเป็นวังของผู้ใหญ่ในบ้านหรือเจ้านาย ความสัมพันธ์กับท่านเหล่านั้นมีแนวโน้มราบรื่นขึ้น อาจได้รับการสนับสนุนหรือโอกาสดีจากผู้ใหญ่",
+  },
+  เดือน: {
+    chong: "ปีนี้ปะทะ (ชง) กับหลักเดือนในดวงเดิม ซึ่งเป็นวังของพี่น้อง เพื่อนสนิท หรือเพื่อนร่วมงาน อาจมีความขัดแย้งหรือการเปลี่ยนแปลงในความสัมพันธ์เหล่านี้ สภาพแวดล้อมการทำงานอาจผันผวน",
+    he: "ปีนี้ประสาน (合) กับหลักเดือนในดวงเดิม ซึ่งเป็นวังของพี่น้องและเพื่อนร่วมงาน ความสัมพันธ์กับคนกลุ่มนี้ราบรื่นดี มีคนช่วยเหลือสนับสนุนในการทำงาน",
+  },
+  วัน: {
+    chong: "ปีนี้ปะทะ (ชง) กับหลักวันในดวงเดิม ซึ่งเป็นวังของคู่ครองและตัวเจ้าชะตาเอง อาจกระทบความสัมพันธ์กับคู่ครองหรือคนใกล้ชิดที่สุด เป็นช่วงที่ต้องปรับตัวในชีวิตคู่ หรือตัวเองรู้สึกไม่มั่นคง",
+    he: "ปีนี้ประสาน (合) กับหลักวันในดวงเดิม ซึ่งเป็นวังของคู่ครองและตัวเจ้าชะตาเอง ความสัมพันธ์กับคู่ครองหรือคนใกล้ชิดราบรื่นดี ชีวิตส่วนตัวมีความมั่นคง",
+  },
+  ยาม: {
+    chong: "ปีนี้ปะทะ (ชง) กับหลักยามในดวงเดิม ซึ่งเป็นวังของบุตรหลานหรือลูกน้องในความดูแล อาจต้องเป็นห่วงเรื่องสุขภาพหรือพฤติกรรมของคนกลุ่มนี้ หรือแผนการระยะยาวมีอุปสรรค",
+    he: "ปีนี้ประสาน (合) กับหลักยามในดวงเดิม ซึ่งเป็นวังของบุตรหลานหรือลูกน้อง ความสัมพันธ์กับคนกลุ่มนี้ราบรื่นดี แผนการระยะยาวมีแนวโน้มสำเร็จ",
+  },
+};
+
+function checkPalaceRelations(transitBranchIdx, natalPillars) {
+  const messages = [];
+  natalPillars.forEach((p) => {
+    const natalIdx = BRANCHES.indexOf(p.branch);
+    if (isChong(transitBranchIdx, natalIdx)) {
+      messages.push({ type: "chong", text: PALACE_MEANING_TH[p.label].chong });
+    }
+    if (isHe(transitBranchIdx, natalIdx)) {
+      messages.push({ type: "he", text: PALACE_MEANING_TH[p.label].he });
+    }
+  });
+  return messages;
+}
 
 function analyzeBranchRelations(pillars) {
   const items = pillars.map((p) => ({ label: p.label, idx: BRANCHES.indexOf(p.branch), char: p.branch }));
@@ -318,7 +368,7 @@ function analyzeBranchRelations(pillars) {
     if (occurrences.length >= 2) {
       activeIdx.add(idx);
       sanxing.push({
-        name: `เถียวตัวเอง (${BRANCHES[idx]}${BRANCHES[idx]})`,
+        name: `自刑 ขัดแย้งในตัวเอง (${BRANCHES[idx]}${BRANCHES[idx]})`,
         meaning: SELF_PUNISH_MEANING,
         full: true,
         pillars: occurrences,
@@ -457,7 +507,7 @@ function computeLuckPillars(dateStr, gender, pillars, count = 8) {
   return { forward, startingAgeYears, periods };
 }
 
-function analyzeLuckPeriodSigns(period, natalBranchIdxSet, favSource, unfavSource) {
+function analyzeLuckPeriodSigns(period, natalBranchIdxSet, favSource, unfavSource, natalPillars) {
   const favMap = Object.fromEntries(favSource.map((f) => [f.element, f.roleKey]));
   const unfavMap = Object.fromEntries(unfavSource.map((f) => [f.element, f.roleKey]));
   const good = [];
@@ -491,12 +541,19 @@ function analyzeLuckPeriodSigns(period, natalBranchIdxSet, favSource, unfavSourc
     if (g.branches.includes(period.branchIdx)) {
       const matched = g.branches.filter((idx) => natalBranchIdxSet.has(idx) || idx === period.branchIdx);
       if (matched.length >= 2) {
-        bad.push(`นักษัตร${period.branch}ขัดแย้ง (เถียว) กับนักษัตรเดิมในดวงแบบ "${g.name}" — ${g.meaning}`);
+        bad.push(`นักษัตร${period.branch}เข้า 刑 (ขัดแย้ง) กับนักษัตรเดิมในดวงแบบ "${g.name}" — ${g.meaning}`);
       }
     }
   });
   if (SELF_PUNISH_BRANCHES.includes(period.branchIdx) && natalBranchIdxSet.has(period.branchIdx)) {
-    bad.push(`นักษัตร${period.branch}ซ้ำกับนักษัตรเดิมในดวง เกิดเถียวตัวเอง — ${SELF_PUNISH_MEANING}`);
+    bad.push(`นักษัตร${period.branch}ซ้ำกับนักษัตรเดิมในดวง เกิด 自刑 (ขัดแย้งในตัวเอง) — ${SELF_PUNISH_MEANING}`);
+  }
+
+  if (natalPillars) {
+    checkPalaceRelations(period.branchIdx, natalPillars).forEach((m) => {
+      if (m.type === "chong") bad.push(m.text);
+      else good.push(m.text);
+    });
   }
 
   return { good, bad };
@@ -543,7 +600,7 @@ function computeYearDomainNotes(stemElement, branchElement, favMap, unfavMap, ge
   return notes;
 }
 
-function computeLiuNianYears(period, birthYear, natalBranchIdxSet, favSource, unfavSource, counts, gender) {
+function computeLiuNianYears(period, birthYear, natalBranchIdxSet, favSource, unfavSource, counts, gender, pillars) {
   const favMap = Object.fromEntries(favSource.map((f) => [f.element, f.roleKey]));
   const unfavMap = Object.fromEntries(unfavSource.map((f) => [f.element, f.roleKey]));
   const comboSet = new Set([...natalBranchIdxSet, period.branchIdx]);
@@ -597,14 +654,26 @@ function computeLiuNianYears(period, birthYear, natalBranchIdxSet, favSource, un
       if (g.branches.includes(yearBranchIdx)) {
         const matched = g.branches.filter((idx) => comboSet.has(idx) || idx === yearBranchIdx);
         if (matched.length >= 2) {
-          bad.push(`ปีนี้ (${branch}) เข้าเถียวกับดวง/วัยจรแบบ "${g.name}" — ${g.meaning}`);
+          bad.push(`ปีนี้ (${branch}) เข้า 刑 (ขัดแย้ง) กับดวง/วัยจรแบบ "${g.name}" — ${g.meaning}`);
           score -= 1;
         }
       }
     });
     if (SELF_PUNISH_BRANCHES.includes(yearBranchIdx) && comboSet.has(yearBranchIdx)) {
-      bad.push(`ปีนี้ (${branch}) ซ้ำนักษัตรเดิม เกิดเถียวตัวเอง — ${SELF_PUNISH_MEANING}`);
+      bad.push(`ปีนี้ (${branch}) ซ้ำนักษัตรเดิม เกิด 自刑 (ขัดแย้งในตัวเอง) — ${SELF_PUNISH_MEANING}`);
       score -= 1;
+    }
+
+    if (pillars) {
+      checkPalaceRelations(yearBranchIdx, pillars).forEach((m) => {
+        if (m.type === "chong") {
+          bad.push(m.text);
+          score -= 1;
+        } else {
+          good.push(m.text);
+          score += 1;
+        }
+      });
     }
 
     let verdict, verdictColor;
@@ -621,20 +690,110 @@ function computeLiuNianYears(period, birthYear, natalBranchIdxSet, favSource, un
   return years;
 }
 
+// ---------- Precise solar term (節氣) calculation ----------
+// สูตรตำแหน่งดวงอาทิตย์แบบ Meeus (ความแม่นยำ ~0.01 องศา) ใช้หาจุดเปลี่ยนฤดู/เดือนจริงตามหลักดาราศาสตร์
+function toJulianDate(dateMs) {
+  return dateMs / 86400000 + 2440587.5;
+}
+
+function mod360(x) {
+  return ((x % 360) + 360) % 360;
+}
+
+function solarLongitudeDeg(dateMs) {
+  const JD = toJulianDate(dateMs);
+  const T = (JD - 2451545.0) / 36525;
+  const L0 = 280.46646 + 36000.76983 * T + 0.0003032 * T * T;
+  const M = 357.52911 + 35999.05029 * T - 0.0001537 * T * T;
+  const Mrad = (M * Math.PI) / 180;
+  const C =
+    (1.914602 - 0.004817 * T - 0.000014 * T * T) * Math.sin(Mrad) +
+    (0.019993 - 0.000101 * T) * Math.sin(2 * Mrad) +
+    0.000289 * Math.sin(3 * Mrad);
+  const trueLong = L0 + C;
+  const omega = 125.04 - 1934.136 * T;
+  const apparentLong = trueLong - 0.00569 - 0.00478 * Math.sin((omega * Math.PI) / 180);
+  return mod360(apparentLong);
+}
+
+function angleDiff(targetDeg, currentDeg) {
+  let d = targetDeg - currentDeg;
+  d = (((d + 180) % 360) + 360) % 360 - 180;
+  return d;
+}
+
+// 12 "จี้" (節) ที่กำหนดจุดเริ่มต้นของแต่ละเดือนสุริยคติ พร้อมนักษัตรที่เริ่มต้น ณ จุดนั้น
+const JIE_TERMS = [
+  { deg: 285, month: 1, day: 6, branch: 1 }, // 小寒 -> 丑
+  { deg: 315, month: 2, day: 4, branch: 2 }, // 立春 -> 寅
+  { deg: 345, month: 3, day: 6, branch: 3 }, // 惊蛰 -> 卯
+  { deg: 15, month: 4, day: 5, branch: 4 }, // 清明 -> 辰
+  { deg: 45, month: 5, day: 6, branch: 5 }, // 立夏 -> 巳
+  { deg: 75, month: 6, day: 6, branch: 6 }, // 芒种 -> 午
+  { deg: 105, month: 7, day: 7, branch: 7 }, // 小暑 -> 未
+  { deg: 135, month: 8, day: 8, branch: 8 }, // 立秋 -> 申
+  { deg: 165, month: 9, day: 8, branch: 9 }, // 白露 -> 酉
+  { deg: 195, month: 10, day: 8, branch: 10 }, // 寒露 -> 戌
+  { deg: 225, month: 11, day: 7, branch: 11 }, // 立冬 -> 亥
+  { deg: 255, month: 12, day: 7, branch: 0 }, // 大雪 -> 子
+];
+
+function findJieDateMs(year, targetDeg, approxMonth, approxDay) {
+  let lo = Date.UTC(year, approxMonth - 1, approxDay - 5);
+  let hi = Date.UTC(year, approxMonth - 1, approxDay + 5);
+  let loDiff = angleDiff(targetDeg, solarLongitudeDeg(lo));
+  for (let i = 0; i < 40; i++) {
+    const mid = (lo + hi) / 2;
+    const midDiff = angleDiff(targetDeg, solarLongitudeDeg(mid));
+    if ((loDiff > 0 && midDiff > 0) || (loDiff < 0 && midDiff < 0)) {
+      lo = mid;
+      loDiff = midDiff;
+    } else {
+      hi = mid;
+    }
+  }
+  return (lo + hi) / 2;
+}
+
+function getLichunMs(year) {
+  return findJieDateMs(year, 315, 2, 4);
+}
+
+// หาว่าเวลาเกิด (ms) อยู่ในช่วงเดือนสุริยคติที่เริ่มจากจี้ใด คืนค่านักษัตรของเดือนนั้น
+function getMonthBranchAtTime(ms) {
+  const year = new Date(ms).getUTCFullYear();
+  const terms = [];
+  [year - 1, year, year + 1].forEach((yr) => {
+    JIE_TERMS.forEach((t) => {
+      terms.push({ ms: findJieDateMs(yr, t.deg, t.month, t.day), branch: t.branch });
+    });
+  });
+  terms.sort((a, b) => a.ms - b.ms);
+  let result = terms[0];
+  for (const t of terms) {
+    if (t.ms <= ms) result = t;
+    else break;
+  }
+  return result.branch;
+}
+
+
 function computePillars(dateStr, timeStr) {
   const [y, mo, d] = dateStr.split("-").map(Number);
-  const [h] = timeStr.split(":").map(Number);
+  const [h, min] = timeStr.split(":").map(Number);
+  const birthMs = Date.UTC(y, mo - 1, d, h, min || 0);
 
-  const baziYear = mo < 2 || (mo === 2 && d < 4) ? y - 1 : y;
+  // เสาปี: ใช้จุดลี่ชุน (立春) ที่แม่นยำจริงของปีนั้นเป็นจุดตัด แทนการประมาณ 4 ก.พ.
+  const lichunThisYear = getLichunMs(y);
+  const baziYear = birthMs < lichunThisYear ? y - 1 : y;
   const yearStemIdx = mod(baziYear - 4, 10);
   const yearBranchIdx = mod(baziYear - 4, 12);
 
-  let solarMonth = d < 5 ? mo - 1 : mo;
-  if (solarMonth === 0) solarMonth = 12;
-  const monthBranchIdx = mod(solarMonth, 12);
+  // เสาเดือน: หาจากจี้ (節) ที่แม่นยำจริง ณ เวลาเกิด แทนการประมาณวันที่ 5 ของเดือน
+  const monthBranchIdx = getMonthBranchAtTime(birthMs);
   const yearGroup = mod(yearStemIdx, 5);
   const monthStartStem = mod(2 + yearGroup * 2, 10);
-  const lunarOffset = mod(solarMonth - 2, 12);
+  const lunarOffset = mod(monthBranchIdx - 2, 12);
   const monthStemIdx = mod(monthStartStem + lunarOffset, 10);
 
   const target = Date.UTC(y, mo - 1, d, 12);
@@ -681,6 +840,7 @@ const bodyText = { color: COLOR.body, lineHeight: 1.7 };
 const cardStyle = { backgroundColor: COLOR.card, border: `1px solid ${COLOR.cardBorder}`, borderRadius: "0.25rem" };
 
 function HowItWorks() {
+  const [expanded, setExpanded] = useState(false);
   const steps = [
     {
       q: "ทำไมต้องหา \"ธาตุประจำตัว\" ก่อนเป็นอันดับแรก",
@@ -695,8 +855,8 @@ function HowItWorks() {
       a: "เพราะฤดูกาลคือแรงสิ่งแวดล้อมที่หนักแน่นและสม่ำเสมอที่สุดที่ธาตุประจำตัวต้องเผชิญตลอดชีวิต ต่างจากธาตุอื่นในดวงที่ส่งผลแบบจุดต่อจุด ฐานเดือนจึงถูกให้น้ำหนักเป็นพิเศษในการชี้วัดว่าธาตุประจำตัว \"ได้จังหวะ\" หรือ \"สวนจังหวะ\" กับธรรมชาติรอบตัวหรือไม่ เหมือนพืชที่ปลูกถูกฤดูย่อมเติบโตง่ายกว่าพืชที่ปลูกผิดฤดู",
     },
     {
-      q: "ทำไมนักษัตรที่ \"ประสาน\" หรือ \"เถียว\" กันถึงเปลี่ยนผลได้",
-      a: "เพราะธาตุในดวงไม่ได้ทำงานแยกส่วนกันเฉยๆ เมื่อนักษัตรบางคู่มาเจอกัน จะเกิดปฏิกิริยาต่อกันคล้ายสารเคมีที่ทำปฏิกิริยากัน บางคู่รวมพลังกันจนกลายเป็นธาตุใหม่ที่เข้มข้นกว่าเดิม (ประสาน) บางคู่ขัดแย้งเสียดสีกันจนเกิดความตึงเครียด (เถียว) การนับธาตุแบบตรงตัวอย่างเดียวจึงไม่พอ ต้องดูปฏิกิริยาระหว่างนักษัตรประกอบด้วยเสมอ",
+      q: "ทำไมนักษัตรที่ \"ประสาน\" หรือ \"刑 (ขัดแย้ง)\" กันถึงเปลี่ยนผลได้",
+      a: "เพราะธาตุในดวงไม่ได้ทำงานแยกส่วนกันเฉยๆ เมื่อนักษัตรบางคู่มาเจอกัน จะเกิดปฏิกิริยาต่อกันคล้ายสารเคมีที่ทำปฏิกิริยากัน บางคู่รวมพลังกันจนกลายเป็นธาตุใหม่ที่เข้มข้นกว่าเดิม (ประสาน) บางคู่ขัดแย้งเสียดสีกันจนเกิดความตึงเครียด (刑 ขัดแย้ง) การนับธาตุแบบตรงตัวอย่างเดียวจึงไม่พอ ต้องดูปฏิกิริยาระหว่างนักษัตรประกอบด้วยเสมอ",
     },
     {
       q: "ทำไมบทบาท (十神) แต่ละอย่างถึงผูกกับด้านชีวิตที่ต่างกัน",
@@ -714,14 +874,25 @@ function HowItWorks() {
         ก่อนอ่านผลด้านล่าง เข้าใจตรรกะเบื้องหลัง 5 ข้อนี้ก่อน จะทำให้ทุกหัวข้อที่ตามมาเชื่อมโยงกันเป็นเหตุเป็นผล ไม่ใช่แค่ท่องความหมายแยกส่วน
       </p>
 
-      <div className="mt-5 space-y-4">
-        {steps.map((s, i) => (
-          <div key={i} className="p-4 rounded-sm" style={{ backgroundColor: "rgba(0,0,0,0.3)", border: `1px solid ${COLOR.cardBorder}` }}>
-            <p className="text-sm font-bold" style={{ color: COLOR.gold }}>{s.q}</p>
-            <p className="mt-2 text-sm" style={bodyText}>{s.a}</p>
-          </div>
-        ))}
-      </div>
+      <button
+        type="button"
+        onClick={() => setExpanded(!expanded)}
+        className="mt-3 text-sm font-semibold"
+        style={{ color: COLOR.gold, textDecoration: "underline" }}
+      >
+        {expanded ? "ซ่อนคำอธิบาย ▲" : "กดเพื่ออ่านคำอธิบาย ▾"}
+      </button>
+
+      {expanded && (
+        <div className="mt-5 space-y-4">
+          {steps.map((s, i) => (
+            <div key={i} className="p-4 rounded-sm" style={{ backgroundColor: "rgba(0,0,0,0.3)", border: `1px solid ${COLOR.cardBorder}` }}>
+              <p className="text-sm font-bold" style={{ color: COLOR.gold }}>{s.q}</p>
+              <p className="mt-2 text-sm" style={bodyText}>{s.a}</p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -744,7 +915,7 @@ function Summary({ pillars, counts, dayMaster, dayStemIdx }) {
     relationPhrases.push(`นักษัตร${g.pillars.map((p) => p.label).join("และ")}ร่วมฤดูกันเป็นธาตุ${ELEMENT_TH[g.element]}`)
   );
   sanxing.forEach((g) =>
-    relationPhrases.push(`นักษัตร${g.pillars.map((p) => p.label).join("และ")}ขัดแย้ง (เถียว) กันแบบ${g.name}`)
+    relationPhrases.push(`นักษัตร${g.pillars.map((p) => p.label).join("และ")}เข้า 刑 (ขัดแย้ง) กันแบบ${g.name}`)
   );
   const relationSentence =
     relationPhrases.length > 0
@@ -835,7 +1006,7 @@ function LifeDomains({ pillars, counts, dayMaster, gender }) {
   const unfavRoleKeys = unfavSource.map((f) => f.roleKey);
   const watchItems = [
     ...unfavRoleKeys.map((rk) => ROLE_CAUTION_TH[rk]),
-    ...sanxing.map((g) => `นักษัตร${g.pillars.map((p) => p.label).join("และ")}ขัดแย้ง (เถียว) กันแบบ "${g.name}" — ${g.meaning}`),
+    ...sanxing.map((g) => `นักษัตร${g.pillars.map((p) => p.label).join("และ")}เข้า 刑 (ขัดแย้ง) กันแบบ "${g.name}" — ${g.meaning}`),
   ];
   if (pattern && (pattern.type === "followStrong" || pattern.type === "followWeak")) {
     watchItems.unshift(`รูปดวงพิเศษ ${pattern.title}: ${pattern.meaning}`);
@@ -1086,17 +1257,17 @@ function BranchRelations({ pillars, counts, dayMaster }) {
     <div className="relative px-6 py-8 sm:px-10 sm:py-10" style={cardStyle}>
       <p style={label}>ความสัมพันธ์ระหว่างนักษัตร</p>
       <h3 className="mt-2 text-xl font-bold sm:text-2xl" style={{ color: COLOR.heading, fontFamily: "'Noto Serif Thai', serif" }}>
-        สามเหลี่ยมประสาน (三合) สามร่วมฤดู (三会) และการเถียว (三刑)
+        สามเหลี่ยมประสาน (三合) สามร่วมฤดู (三会) และ 三刑 (ขัดแย้ง)
       </h3>
       <p className="mt-3 text-sm" style={{ color: COLOR.muted }}>
-        <span className="font-semibold" style={{ color: COLOR.body }}>"เถียว"</span> คือคำที่ตำราจีนใช้เรียกนักษัตรบางคู่/บางกลุ่มที่ถือว่าขัดแย้งหรือเสียดสีพลังกัน
+        <span className="font-semibold" style={{ color: COLOR.body }}>"刑" (อ่านว่า Xíng)</span> คือคำที่ตำราจีนใช้เรียกนักษัตรบางคู่/บางกลุ่มที่ถือว่า<span className="font-semibold" style={{ color: COLOR.body }}>ขัดแย้ง</span>หรือเสียดสีพลังกัน
         เมื่อนักษัตรเหล่านี้มาอยู่ร่วมกันในดวงชะตา มักสะท้อนความตึงเครียดหรือประเด็นที่ต้องระมัดระวังเป็นพิเศษในเรื่องนั้นๆ
         ต่างจาก "ประสาน" ที่หมายถึงนักษัตรที่ส่งเสริมพลังกัน
       </p>
 
       {sanhe.length === 0 && sanhui.length === 0 && sanxing.length === 0 && (
         <p className="mt-4" style={bodyText}>
-          ในสี่เสาชะตานี้ไม่มีนักษัตรที่ประสานหรือเถียวกันเป็นพิเศษ นักษัตรแต่ละตัวจึงทำหน้าที่ของตนเองอย่างอิสระ
+          ในสี่เสาชะตานี้ไม่มีนักษัตรที่ประสานหรือขัดแย้ง (刑) กันเป็นพิเศษ นักษัตรแต่ละตัวจึงทำหน้าที่ของตนเองอย่างอิสระ
         </p>
       )}
 
@@ -1163,13 +1334,13 @@ function BranchRelations({ pillars, counts, dayMaster }) {
       {sanxing.length > 0 && (
         <div className="mt-5">
           <p style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "#F0958C", fontWeight: 600 }}>
-            การเถียว · ซาเถียว
+            三刑 · ขัดแย้ง
           </p>
           <div className="mt-3 space-y-3">
             {sanxing.map((g, i) => (
               <div key={i} className="p-4 rounded-sm" style={{ backgroundColor: "rgba(0,0,0,0.35)", border: `1px solid ${COLOR.cardBorder}` }}>
                 <p style={bodyText}>
-                  เสา{g.pillars.map((p) => p.label).join(" + ")} ({g.pillars.map((p) => p.char).join("")}) เข้าเถียวกันแบบ
+                  เสา{g.pillars.map((p) => p.label).join(" + ")} ({g.pillars.map((p) => p.char).join("")}) เข้า 刑 (ขัดแย้ง) กันแบบ
                   <span className="font-bold" style={{ color: "#F0958C" }}> {g.name} </span>
                   {g.full ? "(ครบรูป)" : "(บางส่วน)"}
                 </p>
@@ -1186,7 +1357,7 @@ function BranchRelations({ pillars, counts, dayMaster }) {
             นักษัตรที่ไม่สัมพันธ์กับใครเป็นพิเศษ
           </p>
           <p className="mt-2 text-sm" style={bodyText}>
-            {unrelated.map((it) => `เสา${it.label} (${it.char})`).join(" · ")} ไม่ได้เข้าเป็นสามเหลี่ยมประสาน สามร่วมฤดู หรือการเถียวกับนักษัตรอื่นในดวง
+            {unrelated.map((it) => `เสา${it.label} (${it.char})`).join(" · ")} ไม่ได้เข้าเป็นสามเหลี่ยมประสาน สามร่วมฤดู หรือ 刑 (ขัดแย้ง) กับนักษัตรอื่นในดวง
             จึงแสดงลักษณะของตัวเองอย่างตรงไปตรงมา โดยไม่ถูกเสริมหรือบั่นทอนจากนักษัตรข้างเคียง
           </p>
         </div>
@@ -1293,10 +1464,10 @@ function LuckPillars({ date, gender, pillars, counts, dayMaster }) {
 
       <div className="mt-6 space-y-4">
         {periods.map((p, i) => {
-          const { good, bad } = analyzeLuckPeriodSigns(p, natalBranchIdxSet, favSource, unfavSource);
+          const { good, bad } = analyzeLuckPeriodSigns(p, natalBranchIdxSet, favSource, unfavSource, pillars);
           const mid = p.ageStart + 5;
           const isExpanded = expandedPeriod === i;
-          const liuNian = isExpanded ? computeLiuNianYears(p, birthYear, natalBranchIdxSet, favSource, unfavSource, counts, gender) : null;
+          const liuNian = isExpanded ? computeLiuNianYears(p, birthYear, natalBranchIdxSet, favSource, unfavSource, counts, gender, pillars) : null;
 
           return (
             <div key={i} className="rounded-sm" style={{ backgroundColor: "rgba(0,0,0,0.35)", border: `1px solid ${COLOR.cardBorder}` }}>
@@ -1578,6 +1749,12 @@ function BaziFortuneApp() {
           <h1 className="text-3xl font-bold sm:text-4xl" style={{ color: COLOR.heading, fontFamily: "'Noto Serif Thai', serif" }}>
             八字 · ผังดวงห้าธาตุ
           </h1>
+          <p className="mt-1 text-xs font-semibold" style={{ color: COLOR.gold, letterSpacing: "0.2em" }}>
+            BY SENKYBABY
+          </p>
+          <p className="mt-1 text-[0.65rem]" style={{ color: COLOR.faint }}>
+            build 2026-08-28-v4-palace
+          </p>
           <p className="mt-3 max-w-md text-sm" style={{ ...bodyText, color: COLOR.body }}>
             กรอกวันเกิดและเวลาเกิด เพื่อเปิดเผยสี่เสาชะตา (ปี · เดือน · วัน · ยาม) และความสมดุลของธาตุไม้ ไฟ ดิน ทอง และน้ำในดวงของคุณ
           </p>
