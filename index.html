@@ -653,8 +653,11 @@ const PATTERN_CATEGORY_TH = {
   followWeak: "從格 · สละดิถีทั่วไป (ตามพลังอ่อนแรง)",
 };
   function computeSpecialPattern(pillars, counts, dmElement, sanheHits, sanhuiHits) {
-  const supportTotal = counts[dmElement] + counts[GENERATOR_OF[dmElement]];
+  // ลำดับการตรวจ: 化格 > 專旺格 > 從旺格 > 從殺/從財/從兒 > 從弱格 > 正格ปกติ
+  const huaGe = computeHuaGePattern(pillars, counts, dmElement);
+  if (huaGe) return huaGe;
 
+  const supportTotal = counts[dmElement] + counts[GENERATOR_OF[dmElement]];
   const fullMatchOwnElement = [...sanheHits, ...sanhuiHits].find((g) => g.full && g.element === dmElement);
 
   if (fullMatchOwnElement && supportTotal >= 5) {
@@ -694,12 +697,19 @@ const PATTERN_CATEGORY_TH = {
     };
   }
 
+  const monthBranchIdx = BRANCHES.indexOf(pillars[1].branch);
+  const monthBranchElement = BRANCH_ELEMENT[monthBranchIdx];
+  const seasonSupportsDm = monthBranchElement === dmElement || monthBranchElement === GENERATOR_OF[dmElement];
+
+  const specificFollow = computeSpecificFollowPattern(counts, dmElement, seasonSupportsDm);
+  if (specificFollow) return specificFollow;
+
   if (supportTotal <= 1) {
     return {
       type: "followWeak",
       title: "從弱格 (Cóngruò Gé)",
       desc: "รูปดวงตามพลังที่อ่อนแรง",
-      meaning: `ธาตุประจำตัวอ่อนแรงมาก (มีแรงหนุนเพียง ${supportTotal} จาก 8) ขณะที่ธาตุอื่นรุมล้อมอย่างท่วมท้น การพยายามหาธาตุมาเสริมธาตุประจำตัวจะยิ่งขัดกับกระแสหลักของดวง ควรปล่อยตามธาตุที่ท่วมท้นแทนการฝืนเสริมธาตุประจำตัว`,
+      meaning: `ธาตุประจำตัวอ่อนแรงมาก (มีแรงหนุนเพียง ${supportTotal} จาก 8) ขณะที่ธาตุอื่นรุมล้อมอย่างท่วมท้นแต่ไม่มีธาตุใดครองอำนาจเด่นชัดเพียงธาตุเดียว การพยายามหาธาตุมาเสริมธาตุประจำตัวจะยิ่งขัดกับกระแสหลักของดวง ควรปล่อยตามธาตุที่ท่วมท้นแทนการฝืนเสริมธาตุประจำตัว`,
       favorable: [
         { element: PRODUCES[dmElement], role: ROLE_TH.output, roleKey: "output" },
         { element: CONTROLS[dmElement], role: ROLE_TH.wealth, roleKey: "wealth" },
@@ -714,7 +724,6 @@ const PATTERN_CATEGORY_TH = {
 
   return null;
 }
-
 function supportLevel(counts, dmElement) {
   const total = counts[dmElement] + counts[GENERATOR_OF[dmElement]];
   if (total >= 5) return { label: "ได้รับการหนุนธาตุดี", detail: "มีธาตุอื่นในดวงหลายตัวช่วยเสริมพลัง ทำให้ธาตุประจำตัวแสดงออกมาอย่างมั่นคงและหนักแน่น" };
@@ -1905,15 +1914,18 @@ function Interpretation({ pillars, counts, dayMaster }) {
         命
       </div>
       <p style={label}>คำทำนาย</p>
-      <h3 className="mt-2 text-xl font-bold sm:text-2xl" style={{ color: COLOR.heading, fontFamily: "'Noto Serif Thai', serif" }}>
-        ธาตุประจำตัว (日主) ของคุณคือ {dayMaster.stem} ({ELEMENT_TH[dmElement]})
-      </h3>
-      <p className="mt-4" style={bodyText}>
-        ในแปดตัวอักษรของดวงชะตา ธาตุ
-        <span style={{ color: ELEMENT_COLOR[strongest[0]] }} className="font-bold"> {ELEMENT_ZH[strongest[0]]} {ELEMENT_TH[strongest[0]]} </span>
-        ปรากฏมากที่สุด ({strongest[1]} จาก 8 ตัว) บ่งบอกถึงแนวโน้มตามธรรมชาติที่โน้มเอียงไปทาง{ELEMENT_TRAIT_TH[strongest[0]]}
-      </p>
-
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+  <h3 className="text-xl font-bold sm:text-2xl" style={{ color: COLOR.heading, fontFamily: "'Noto Serif Thai', serif" }}>
+    {pattern.title}
+  </h3>
+  <span
+    className="rounded-full px-2.5 py-1 text-[0.65rem] font-semibold"
+    style={{ backgroundColor: "rgba(0,0,0,0.35)", color: COLOR.gold, border: `1px solid ${COLOR.gold}` }}
+  >
+    {PATTERN_CATEGORY_TH[pattern.type] || "特殊格局"}
+  </span>
+</div>
+<p className="mt-1 text-sm font-semibold" style={{ color: ELEMENT_COLOR[pattern.newElement || dmElement] }}>{pattern.desc}</p>
       <p className="mt-6" style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "#8FE39A", fontWeight: 600 }}>
         ธาตุที่ให้คุณ เรียงตามลำดับความสำคัญ
       </p>
