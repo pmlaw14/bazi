@@ -131,7 +131,8 @@ const ROLE_JOB_HINT_TH = {
   wealth: "เหมาะกับงานธุรกิจ การค้าขาย การลงทุน หรืองานที่ได้ผลตอบแทนเป็นตัวเงินโดยตรง",
   officer: "เหมาะกับงานราชการ องค์กรขนาดใหญ่ งานบริหารจัดการ หรือบทบาทที่มีโครงสร้างชัดเจนและมีอำนาจตัดสินใจ",
 };
-
+const spouseTrait = getSpousePalaceTrait(dayStemElement, dayBranchElement);
+// spouseTrait.trait → เอาไปแสดงในหน้า UI
 // ระบบร่างกายที่ตำราจีนโยงกับแต่ละธาตุ ใช้ประกอบการทำนายด้านสุขภาพ
 const ELEMENT_ORGAN_TH = {
   Wood: "ตับ ถุงน้ำดี เส้นเอ็น และดวงตา",
@@ -202,7 +203,34 @@ function getSeasonName(branchIdx) {
   if ([8, 9, 10].includes(branchIdx)) return "ฤดูใบไม้ร่วง";
   return "ฤดูหนาว";
 }
-
+function getSpousePalaceTrait(dayStemEl, dayBranchEl) {
+  if (dayStemEl === dayBranchEl) {
+    return {
+      relation: "比劫 (ธาตุเดียวกัน)",
+      trait: "เนื้อคู่มีแนวโน้มคบหาเป็นเพื่อนก่อน เข้าอกเข้าใจเหมือนเพื่อนสนิท มีความเสมอภาคกันในความสัมพันธ์"
+    };
+  } else if (PRODUCES[dayStemEl] === dayBranchEl) {
+    return {
+      relation: "食傷 (เราสร้างเขา)",
+      trait: "เนื้อคู่อ่อนโยน น่ารัก เจ้าชะตามักเป็นฝ่ายดูแลเอาใจใส่มากกว่า"
+    };
+  } else if (PRODUCES[dayBranchEl] === dayStemEl) {
+    return {
+      relation: "印 (เขาสร้างเรา)",
+      trait: "เนื้อคู่คอยซัพพอร์ต ดูแลเจ้าชะตาเหมือนที่พึ่งพิงได้ ให้ความมั่นคงอบอุ่น"
+    };
+  } else if (CONTROLS[dayStemEl] === dayBranchEl) {
+    return {
+      relation: "財 (เราควบคุมเขา)",
+      trait: "เจ้าชะตามักเป็นฝ่ายนำในความสัมพันธ์ เนื้อคู่ละเอียดอ่อน อดทน ทำตามแผนที่วางไว้"
+    };
+  } else {
+    return {
+      relation: "官殺 (เขาควบคุมเรา)",
+      trait: "เนื้อคู่เด็ดขาด เข้มงวด มักมีบทบาทนำในบ้าน เจ้าชะตามักเป็นฝ่ายยอมตาม"
+    };
+  }
+}
 // กฎกำลังธาตุประจำตัว (身强/身弱): ต้องได้ทั้ง "ฐานเดือนสนับสนุน" (得令)
 // และ "ธาตุเดียวกัน + ธาตุที่เสริม" ต้องเกิน 4 ใน 8 จึงจะถือว่าธาตุประจำตัวแข็งแรง
 function computeDayMasterStrength(pillars, counts, dmElement) {
