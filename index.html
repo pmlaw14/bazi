@@ -206,27 +206,27 @@ function getSpousePalaceTrait(dayStemEl, dayBranchEl) {
   if (dayStemEl === dayBranchEl) {
     return {
       relation: "比劫 (ธาตุเดียวกัน)",
-      trait: "เนื้อคู่มีแนวโน้มคบหาเป็นเพื่อนก่อน เข้าอกเข้าใจเหมือนเพื่อนสนิท มีความเสมอภาคกันในความสัมพันธ์"
+      trait: "คบกันแบบเพื่อนก่อน เข้าอกเข้าใจกันง่าย เหมือนเป็นเพื่อนสนิทมากกว่าคู่รักทั่วไป มีความเสมอภาคกันสูง"
     };
   } else if (PRODUCES[dayStemEl] === dayBranchEl) {
     return {
       relation: "食傷 (เราสร้างเขา)",
-      trait: "เนื้อคู่อ่อนโยน น่ารัก เจ้าชะตามักเป็นฝ่ายดูแลเอาใจใส่มากกว่า"
+      trait: "เนื้อคู่อ่อนโยน น่ารัก เจ้าชะตามักเป็นฝ่ายดูแล เอาใจใส่ฝ่ายตรงข้ามมากกว่า"
     };
   } else if (PRODUCES[dayBranchEl] === dayStemEl) {
     return {
       relation: "印 (เขาสร้างเรา)",
-      trait: "เนื้อคู่คอยซัพพอร์ต ดูแลเจ้าชะตาเหมือนที่พึ่งพิงได้ ให้ความมั่นคงอบอุ่น"
+      trait: "เนื้อคู่มีลักษณะคอยซัพพอร์ต ดูแลเอาใจใส่เจ้าชะตาเหมือนพี่/ผู้ปกครอง ให้ความอบอุ่นมั่นคง"
     };
   } else if (CONTROLS[dayStemEl] === dayBranchEl) {
     return {
       relation: "財 (เราควบคุมเขา)",
-      trait: "เจ้าชะตามักเป็นฝ่ายนำในความสัมพันธ์ เนื้อคู่ละเอียดอ่อน อดทน ทำตามแผนที่วางไว้"
+      trait: "เจ้าชะตามักเป็นฝ่ายนำ/ตัดสินใจในความสัมพันธ์ เนื้อคู่เป็นคนละเอียด อดทน ทำตามที่วางแผนไว้"
     };
   } else {
     return {
       relation: "官殺 (เขาควบคุมเรา)",
-      trait: "เนื้อคู่เด็ดขาด เข้มงวด มักมีบทบาทนำในบ้าน เจ้าชะตามักเป็นฝ่ายยอมตาม"
+      trait: "เนื้อคู่มีความเด็ดขาด เข้มงวด หรือมีบทบาทนำในบ้าน เจ้าชะตามักเป็นฝ่ายยอมตาม"
     };
   }
 }
@@ -1571,17 +1571,17 @@ function SeasonStrength({ pillars, counts, dayMaster }) {
 }
 function SpousePalace({ pillars, dayMaster }) {
   const dmElement = dayMaster.stemElement;
-  const monthPillar = pillars[1];
-  const monthBranchElement = monthPillar.branchElement;
+  const dayPillar = pillars[1];
+  const dayBranchElement = dayPillar.branchElement;
 
   // ใช้ฟังก์ชันเดิมที่มีอยู่แล้ว (getSpousePalaceTrait) โดยเทียบธาตุประจำตัว
   // กับธาตุของฐานเดือน (月支) แทนฐานวัน ตามที่ต้องการ
-  const spouse = getSpousePalaceTrait(dmElement, monthBranchElement);
+  const spouse = getSpousePalaceTrait(dmElement, dayBranchElement);
 
   const relationColorMap = {
     "比劫 (ธาตุเดียวกัน)": "#8FE39A",
     "食傷 (เราสร้างเขา)": ELEMENT_COLOR[dmElement],
-    "印 (เขาสร้างเรา)": ELEMENT_COLOR[monthBranchElement],
+    "印 (เขาสร้างเรา)": ELEMENT_COLOR[dayBranchElement],
     "財 (เราควบคุมเขา)": COLOR.gold,
     "官殺 (เขาควบคุมเรา)": "#F0958C",
   };
@@ -1599,13 +1599,13 @@ function SpousePalace({ pillars, dayMaster }) {
         <span className="font-semibold" style={{ color: ELEMENT_COLOR[dmElement] }}>
           {ELEMENT_ZH[dmElement]} {ELEMENT_TH[dmElement]}
         </span>
-        ) กับธาตุของฐานเดือน{" "}
+        ) กับธาตุของฐานวัน{" "}
         <span className="font-semibold" style={{ color: COLOR.body }}>
-          {monthPillar.branch}
+          {dayPillar.branch}
         </span>{" "}
         (
-        <span className="font-semibold" style={{ color: ELEMENT_COLOR[monthBranchElement] }}>
-          {ELEMENT_ZH[monthBranchElement]} {ELEMENT_TH[monthBranchElement]}
+        <span className="font-semibold" style={{ color: ELEMENT_COLOR[dayBranchElement] }}>
+          {ELEMENT_ZH[dayBranchElement]} {ELEMENT_TH[dayBranchElement]}
         </span>
         )
       </p>
@@ -1620,7 +1620,7 @@ function SpousePalace({ pillars, dayMaster }) {
       </div>
 
       <p className="mt-4 text-sm italic" style={{ color: COLOR.faint }}>
-        ตำราดั้งเดิมส่วนใหญ่นิยมใช้ฐานวัน (日支) เป็นวังคู่ครองหลัก การใช้ฐานเดือนเป็นมุมมองเสริมเพื่อการไตร่ตรอง ไม่ใช่การพยากรณ์ที่ตายตัว
+        ตำราดั้งเดิมส่วนใหญ่นิยมใช้ฐานวัน (日支) เป็นวังคู่ครองหลัก 
       </p>
     </div>
   );
