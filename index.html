@@ -131,8 +131,7 @@ const ROLE_JOB_HINT_TH = {
   wealth: "เหมาะกับงานธุรกิจ การค้าขาย การลงทุน หรืองานที่ได้ผลตอบแทนเป็นตัวเงินโดยตรง",
   officer: "เหมาะกับงานราชการ องค์กรขนาดใหญ่ งานบริหารจัดการ หรือบทบาทที่มีโครงสร้างชัดเจนและมีอำนาจตัดสินใจ",
 };
-const spouseTrait = getSpousePalaceTrait(dayStemElement, dayBranchElement);
-// spouseTrait.trait → เอาไปแสดงในหน้า UI
+
 // ระบบร่างกายที่ตำราจีนโยงกับแต่ละธาตุ ใช้ประกอบการทำนายด้านสุขภาพ
 const ELEMENT_ORGAN_TH = {
   Wood: "ตับ ถุงน้ำดี เส้นเอ็น และดวงตา",
@@ -669,7 +668,8 @@ function computeSpecificFollowPattern(counts, dmElement, seasonSupportsDm) {
     ],
   };
 }
-
+const spouseTrait = getSpousePalaceTrait(dayStemElement, dayBranchElement);
+// spouseTrait.trait → เอาไปแสดงในหน้า UI
 // ป้ายกำกับหมวดหมู่รูปดวง ใช้แสดงผลใน UI ให้เห็นว่าอยู่ตระกูลไหน (化格/專旺格/從格)
 const PATTERN_CATEGORY_TH = {
   huaGe: "化格 · แปรธาตุ",
