@@ -105,8 +105,7 @@ const ROLE_GOOD_TH = {
   wealth: "การเงินและผลตอบแทนจากการลงแรงมีแนวโน้มดีขึ้น",
   officer: "ตำแหน่งหน้าที่ ความรับผิดชอบ หรือความก้าวหน้าทางอำนาจมีแนวโน้มดี",
 };
-const spouseTrait = getSpousePalaceTrait(dayStemElement, dayBranchElement);
-// เอาไปรวมกับ object ผลลัพธ์อื่นๆ ที่ส่งไปหน้าแสดงผล
+
 // ธีมชีวิตที่ควรระวังเป็นพิเศษ เมื่อธาตุ/บทบาทนั้นไม่เป็นคุณในช่วงเวลานั้น
 const ROLE_CAUTION_TH = {
   peer: "การแข่งขันแย่งชิงผลประโยชน์กับคนใกล้ตัว มิตรภาพที่อาจกลายเป็นคู่แข่ง หรือรายจ่ายที่เพิ่มขึ้นจากการแบ่งปันทรัพยากรกับผู้อื่น",
@@ -2000,34 +1999,6 @@ function ElementBars({ counts }) {
       ))}
     </div>
   );
-}
-function getSpousePalaceTrait(dayStemEl, dayBranchEl) {
-  if (dayStemEl === dayBranchEl) {
-    return {
-      relation: "比劫 (ธาตุเดียวกัน)",
-      trait: "เนื้อคู่มีแนวโน้มคบหาเป็นเพื่อนก่อน เข้าอกเข้าใจเหมือนเพื่อนสนิท มีความเสมอภาคกันในความสัมพันธ์"
-    };
-  } else if (PRODUCES[dayStemEl] === dayBranchEl) {
-    return {
-      relation: "食傷 (เราสร้างเขา)",
-      trait: "เนื้อคู่อ่อนโยน น่ารัก เจ้าชะตามักเป็นฝ่ายดูแลเอาใจใส่มากกว่า"
-    };
-  } else if (PRODUCES[dayBranchEl] === dayStemEl) {
-    return {
-      relation: "印 (เขาสร้างเรา)",
-      trait: "เนื้อคู่คอยซัพพอร์ต ดูแลเจ้าชะตาเหมือนที่พึ่งพิงได้ ให้ความมั่นคงอบอุ่น"
-    };
-  } else if (CONTROLS[dayStemEl] === dayBranchEl) {
-    return {
-      relation: "財 (เราควบคุมเขา)",
-      trait: "เจ้าชะตามักเป็นฝ่ายนำในความสัมพันธ์ เนื้อคู่ละเอียดอ่อน อดทน ทำตามแผนที่วางไว้"
-    };
-  } else {
-    return {
-      relation: "官殺 (เขาควบคุมเรา)",
-      trait: "เนื้อคู่เด็ดขาด เข้มงวด มักมีบทบาทนำในบ้าน เจ้าชะตามักเป็นฝ่ายยอมตาม"
-    };
-  }
 }
 function BaziFortuneApp() {
   const [date, setDate] = useState("1996-07-23");
