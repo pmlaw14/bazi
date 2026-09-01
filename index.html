@@ -1817,10 +1817,11 @@ function BaziFortuneApp() {
                 </svg>
               </div>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-                {result.pillars.map((p, i) => (
-                  <Pillar key={p.label} p={p} i={i} />
-                ))}
-              </div>
+  {[...result.pillars].reverse().map((p, i) => (
+    <Pillar key={p.label} p={p} i={i} />
+  ))}
+</div>
+
             </div>
 
             <HowItWorks />
