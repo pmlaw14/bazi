@@ -518,7 +518,141 @@ const DOMINANT_PATTERN_TH = {
 };
 
 // รูปดวงพิเศษ (特殊格局) แบบง่าย: ใช้เมื่อธาตุประจำตัวแข็งหรืออ่อนสุดขั้วจนหลักการปกติใช้ไม่ได้
-function computeSpecialPattern(pillars, counts, dmElement, sanheHits, sanhuiHits) {
+// ---------- 化格 (Huà Gé) — รูปดวงแปรธาตุจากก้านวันประสานก้านเดือน ----------
+const STEM_HE_DEFS = [
+  { pair: ["甲", "己"], element: "Earth", name: "甲己合化土" },
+  { pair: ["乙", "庚"], element: "Metal", name: "乙庚合化金" },
+  { pair: ["丙", "辛"], element: "Water", name: "丙辛合化水" },
+  { pair: ["丁", "壬"], element: "Wood", name: "丁壬合化木" },
+  { pair: ["戊", "癸"], element: "Fire", name: "戊癸合化火" },
+];
+
+function getStemCombination(stemA, stemB) {
+  return (
+    STEM_HE_DEFS.find(
+      (d) => (d.pair[0] === stemA && d.pair[1] === stemB) || (d.pair[0] === stemB && d.pair[1] === stemA)
+    ) || null
+  );
+}
+
+// เมื่อก้านวัน (日干) ประสานกับก้านเดือน (月干) แปรเป็นธาตุใหม่ และธาตุใหม่นั้นได้รับแรงหนุนจากฤดูเกิดอย่างชัดเจน
+// ขณะที่ธาตุเดิมของวันไม่ได้รับการหนุนจากฤดูเลย ถือว่าการแปรธาตุสำเร็จ (化格 成) ให้ใช้ธาตุใหม่แทนธาตุเดิมทั้งหมด
+function computeHuaGePattern(pillars, counts, dmElement) {
+  const dayStem = pillars[2].stem;
+  const monthStem = pillars[1].stem;
+  const combo = getStemCombination(dayStem, monthStem);
+  if (!combo || combo.element === dmElement) return null;
+
+  const monthBranchIdx = BRANCHES.indexOf(pillars[1].branch);
+  const monthBranchElement = BRANCH_ELEMENT[monthBranchIdx];
+  const seasonSupportsNew = monthBranchElement === combo.element || monthBranchElement === GENERATOR_OF[combo.element];
+  const seasonSupportsOld = monthBranchElement === dmElement || monthBranchElement === GENERATOR_OF[dmElement];
+
+  if (!seasonSupportsNew || seasonSupportsOld) return null;
+
+  return {
+    type: "huaGe",
+    title: `化格 · ${combo.name}`,
+    desc: `รูปดวงแปรธาตุ — ก้านวัน (${dayStem}) ประสานก้านเดือน (${monthStem}) แปรเป็นธาตุ${ELEMENT_TH[combo.element]}ใหม่ทั้งหมด`,
+    meaning: `ก้านวันประสานกับก้านเดือนตามคู่ ${combo.name} และธาตุ${ELEMENT_TH[combo.element]}ที่เกิดขึ้นใหม่นี้ได้รับแรงหนุนจากฤดูเกิดอย่างชัดเจน ขณะที่ธาตุประจำตัวเดิม (${ELEMENT_TH[dmElement]}) กลับไม่ได้รับการหนุนจากฤดูเลย จึงถือว่าการแปรธาตุสำเร็จสมบูรณ์ (化格 成) ให้ใช้ธาตุ${ELEMENT_TH[combo.element]}เป็นธาตุประจำตัวใหม่ในการพิจารณาสิ่งที่เป็นคุณและควรระวังแทนธาตุเดิมทั้งหมด`,
+    newElement: combo.element,
+    favorable: [
+      { element: GENERATOR_OF[combo.element], role: ROLE_TH.resource, roleKey: "resource" },
+      { element: combo.element, role: ROLE_TH.peer, roleKey: "peer" },
+      { element: PRODUCES[combo.element], role: ROLE_TH.output, roleKey: "output" },
+    ],
+    unfavorable: [
+      { element: CONTROLS[combo.element], role: ROLE_TH.wealth, roleKey: "wealth" },
+      { element: CONTROLLED_BY[combo.element], role: ROLE_TH.officer, roleKey: "officer" },
+    ],
+  };
+}
+
+// ---------- 從殺格 / 從財格 / 從兒格 — สละดิถีตามธาตุอำนาจ/ทรัพย์/ผลงานที่ครองเด่นชัด ----------
+// ใช้เมื่อธาตุประจำตัวอ่อนแอสุดขั้ว (ไม่ได้รับกำลังจากฤดูและแรงหนุนรวมต่ำมาก) และมีธาตุใดธาตุหนึ่งใน
+// สามบทบาท "ระบายออก" (ผลงาน/ทรัพย์/อำนาจ) ครองอำนาจเหนือดวงอย่างชัดเจนเพียงธาตุเดียว
+function computeSpecificFollowPattern(counts, dmElement, seasonSupportsDm) {
+  const resourceCount = counts[GENERATOR_OF[dmElement]];
+  const peerCount = counts[dmElement];
+  const supportTotal = resourceCount + peerCount;
+  if (seasonSupportsDm || supportTotal > 1) return null;
+
+  const outputEl = PRODUCES[dmElement];
+  const wealthEl = CONTROLS[dmElement];
+  const officerEl = CONTROLLED_BY[dmElement];
+  const candidates = [
+    { key: "output", element: outputEl, count: counts[outputEl] },
+    { key: "wealth", element: wealthEl, count: counts[wealthEl] },
+    { key: "officer", element: officerEl, count: counts[officerEl] },
+  ].sort((a, b) => b.count - a.count);
+
+  const top = candidates[0];
+  if (top.count < 4) return null;
+
+  if (top.key === "officer") {
+    return {
+      type: "congSha",
+      title: "從殺格 (Cóngshā Gé)",
+      desc: "รูปดวงสละดิถีตามธาตุอำนาจ — ยอมจำนนต่อพลังที่ควบคุมตัวตน",
+      meaning: `ธาตุประจำตัวอ่อนแอสุดขั้ว (แรงหนุนจากพวกพ้องและทรัพยากรมีเพียง ${supportTotal} จาก 8) ขณะที่ธาตุ${ELEMENT_TH[officerEl]} (บทบาทอำนาจ/ผู้ควบคุม) ครองอำนาจเหนือดวงอย่างชัดเจน (${top.count} จาก 8) เจ้าชะตาไม่มีกำลังพอจะต้านทาน จึงควร "สละ" ความเป็นตัวของตัวเองแล้วโอนอ่อนตามพลังอำนาจที่ครอบงำอยู่ การมีธาตุมาเสริมตัวเอง (พวกพ้อง/ทรัพยากร) หรือธาตุที่ไปต่อต้านอำนาจ (ผลงาน) กลับกลายเป็นโทษ เพราะขัดกับกระแสหลักของดวง`,
+      favorable: [
+        { element: wealthEl, role: ROLE_TH.wealth, roleKey: "wealth" },
+        { element: officerEl, role: ROLE_TH.officer, roleKey: "officer" },
+      ],
+      unfavorable: [
+        { element: dmElement, role: ROLE_TH.peer, roleKey: "peer" },
+        { element: GENERATOR_OF[dmElement], role: ROLE_TH.resource, roleKey: "resource" },
+        { element: outputEl, role: ROLE_TH.output, roleKey: "output" },
+      ],
+    };
+  }
+
+  if (top.key === "wealth") {
+    return {
+      type: "congCai",
+      title: "從財格 (Cóngcái Gé)",
+      desc: "รูปดวงสละดิถีตามธาตุทรัพย์ — ทุ่มเทเพื่อทรัพย์สินและผลตอบแทน",
+      meaning: `ธาตุประจำตัวอ่อนแอสุดขั้ว (แรงหนุนจากพวกพ้องและทรัพยากรมีเพียง ${supportTotal} จาก 8) ขณะที่ธาตุ${ELEMENT_TH[wealthEl]} (บทบาททรัพย์สิน) ครองอำนาจเหนือดวงอย่างชัดเจน (${top.count} จาก 8) เจ้าชะตาจึงเหมาะจะปล่อยตัวไปกับกระแสทรัพย์สินและการแสวงหาผลตอบแทนอย่างเต็มที่ แทนที่จะพยายามรักษาความมั่นคงของตัวตนไว้ ซึ่งจะสวนทางกับพลังหลักของดวง`,
+      favorable: [
+        { element: outputEl, role: ROLE_TH.output, roleKey: "output" },
+        { element: wealthEl, role: ROLE_TH.wealth, roleKey: "wealth" },
+        { element: officerEl, role: ROLE_TH.officer, roleKey: "officer" },
+      ],
+      unfavorable: [
+        { element: dmElement, role: ROLE_TH.peer, roleKey: "peer" },
+        { element: GENERATOR_OF[dmElement], role: ROLE_TH.resource, roleKey: "resource" },
+      ],
+    };
+  }
+
+  return {
+    type: "congEr",
+    title: "從兒格 (Cóng'ér Gé)",
+    desc: "รูปดวงสละดิถีตามธาตุผลงาน — ปล่อยพลังไหลผ่านการแสดงออกและผลงาน",
+    meaning: `ธาตุประจำตัวอ่อนแอสุดขั้ว (แรงหนุนจากพวกพ้องและทรัพยากรมีเพียง ${supportTotal} จาก 8) ขณะที่ธาตุ${ELEMENT_TH[outputEl]} (บทบาทการแสดงออก/ผลงาน) ครองอำนาจเหนือดวงอย่างชัดเจน (${top.count} จาก 8) เจ้าชะตาจึงเหมาะจะปล่อยพลังไหลผ่านการสร้างสรรค์ผลงานและการแสดงออกอย่างเต็มที่ การถูกควบคุมด้วยกฎเกณฑ์หรืออำนาจจากภายนอกจะขัดขวางพลังที่กำลังไหลลื่นนี้`,
+    favorable: [
+      { element: dmElement, role: ROLE_TH.peer, roleKey: "peer" },
+      { element: outputEl, role: ROLE_TH.output, roleKey: "output" },
+      { element: wealthEl, role: ROLE_TH.wealth, roleKey: "wealth" },
+    ],
+    unfavorable: [
+      { element: GENERATOR_OF[dmElement], role: ROLE_TH.resource, roleKey: "resource" },
+      { element: officerEl, role: ROLE_TH.officer, roleKey: "officer" },
+    ],
+  };
+}
+
+// ป้ายกำกับหมวดหมู่รูปดวง ใช้แสดงผลใน UI ให้เห็นว่าอยู่ตระกูลไหน (化格/專旺格/從格)
+const PATTERN_CATEGORY_TH = {
+  huaGe: "化格 · แปรธาตุ",
+  dominant: "專旺格 · พลังเดี่ยวเต็มรูป",
+  followStrong: "從格 · สละดิถีทั่วไป (ตามพลังรุ่งเรือง)",
+  congSha: "從格 · สละดิถีตามธาตุอำนาจ",
+  congCai: "從格 · สละดิถีตามธาตุทรัพย์",
+  congEr: "從格 · สละดิถีตามธาตุผลงาน",
+  followWeak: "從格 · สละดิถีทั่วไป (ตามพลังอ่อนแรง)",
+};
+  function computeSpecialPattern(pillars, counts, dmElement, sanheHits, sanhuiHits) {
   const supportTotal = counts[dmElement] + counts[GENERATOR_OF[dmElement]];
 
   const fullMatchOwnElement = [...sanheHits, ...sanhuiHits].find((g) => g.full && g.element === dmElement);
