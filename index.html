@@ -1575,12 +1575,12 @@ function SpousePalace({ pillars, dayMaster }) {
   const dayBranchElement = dayPillar.branchElement;
 
   // ใช้ฟังก์ชันเดิมที่มีอยู่แล้ว (getSpousePalaceTrait) โดยเทียบธาตุประจำตัว
-  // กับธาตุของฐานเดือน (月支) แทนฐานวัน ตามที่ต้องการ
+  // กับธาตุของฐานวัน (月支) แทนฐานวัน ตามที่ต้องการ
   const spouse = getSpousePalaceTrait(dmElement, dayBranchElement);
 
   const relationColorMap = {
-    "比劫 (ธาตุเดียวกัน)": "#8FE39A",
-    "食傷 (เราสร้างเขา)": ELEMENT_COLOR[dmElement],
+    "比劫 (ธาตุเดียวกัน)": "ELEMENT_COLOR[dmElement],
+    "食傷 (เราสร้างเขา)": "#8FE39A",
     "印 (เขาสร้างเรา)": ELEMENT_COLOR[dayBranchElement],
     "財 (เราควบคุมเขา)": COLOR.gold,
     "官殺 (เขาควบคุมเรา)": "#F0958C",
