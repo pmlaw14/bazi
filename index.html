@@ -1684,11 +1684,18 @@ function SpecialPattern({ pillars, counts, dayMaster }) {
         </>
       ) : (
         <>
-          <h3 className="mt-2 text-xl font-bold sm:text-2xl" style={{ color: COLOR.heading, fontFamily: "'Noto Serif Thai', serif" }}>
-            {pattern.title}
-          </h3>
-          <p className="mt-1 text-sm font-semibold" style={{ color: ELEMENT_COLOR[dmElement] }}>{pattern.desc}</p>
-          <p className="mt-4" style={bodyText}>{pattern.meaning}</p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+            <h3 className="text-xl font-bold sm:text-2xl" style={{ color: COLOR.heading, fontFamily: "'Noto Serif Thai', serif" }}>
+              {pattern.title}
+            </h3>
+            <span
+              className="rounded-full px-2.5 py-1 text-[0.65rem] font-semibold"
+              style={{ backgroundColor: "rgba(0,0,0,0.35)", color: COLOR.gold, border: `1px solid ${COLOR.gold}` }}
+            >
+              {PATTERN_CATEGORY_TH[pattern.type] || "特殊格局"}
+            </span>
+          </div>
+          <p className="mt-1 text-sm font-semibold" style={{ color: ELEMENT_COLOR[pattern.newElement || dmElement] }}>{pattern.desc}</p>          <p className="mt-4" style={bodyText}>{pattern.meaning}</p>
 
           <p className="mt-5 text-sm font-semibold" style={{ color: COLOR.gold }}>
             ⚠ รูปดวงพิเศษนี้จะแทนที่ข้อสรุป "ธาตุที่เป็นคุณ / ควรระวัง" ในส่วนกำลังธาตุและคำทำนายด้านบนและด้านล่าง
@@ -1913,19 +1920,11 @@ function Interpretation({ pillars, counts, dayMaster }) {
       >
         命
       </div>
-      <p style={label}>คำทำนาย</p>
-      <div className="mt-2 flex flex-wrap items-center gap-2">
-  <h3 className="text-xl font-bold sm:text-2xl" style={{ color: COLOR.heading, fontFamily: "'Noto Serif Thai', serif" }}>
-    {pattern.title}
-  </h3>
-  <span
-    className="rounded-full px-2.5 py-1 text-[0.65rem] font-semibold"
-    style={{ backgroundColor: "rgba(0,0,0,0.35)", color: COLOR.gold, border: `1px solid ${COLOR.gold}` }}
-  >
-    {PATTERN_CATEGORY_TH[pattern.type] || "特殊格局"}
-  </span>
-</div>
-<p className="mt-1 text-sm font-semibold" style={{ color: ELEMENT_COLOR[pattern.newElement || dmElement] }}>{pattern.desc}</p>
+            <p style={label}>คำทำนาย</p>
+      <h3 className="mt-2 text-xl font-bold sm:text-2xl" style={{ color: COLOR.heading, fontFamily: "'Noto Serif Thai', serif" }}>
+        ธาตุที่ให้คุณต่อชีวิตของคุณ
+      </h3>
+
       <p className="mt-6" style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "#8FE39A", fontWeight: 600 }}>
         ธาตุที่ให้คุณ เรียงตามลำดับความสำคัญ
       </p>
