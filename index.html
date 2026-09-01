@@ -1569,7 +1569,62 @@ function SeasonStrength({ pillars, counts, dayMaster }) {
     </div>
   );
 }
+function SpousePalace({ pillars, dayMaster }) {
+  const dmElement = dayMaster.stemElement;
+  const monthPillar = pillars[1];
+  const monthBranchElement = monthPillar.branchElement;
 
+  // ใช้ฟังก์ชันเดิมที่มีอยู่แล้ว (getSpousePalaceTrait) โดยเทียบธาตุประจำตัว
+  // กับธาตุของฐานเดือน (月支) แทนฐานวัน ตามที่ต้องการ
+  const spouse = getSpousePalaceTrait(dmElement, monthBranchElement);
+
+  const relationColorMap = {
+    "比劫 (ธาตุเดียวกัน)": "#8FE39A",
+    "食傷 (เราสร้างเขา)": ELEMENT_COLOR[dmElement],
+    "印 (เขาสร้างเรา)": ELEMENT_COLOR[monthBranchElement],
+    "財 (เราควบคุมเขา)": COLOR.gold,
+    "官殺 (เขาควบคุมเรา)": "#F0958C",
+  };
+  const relationColor = relationColorMap[spouse.relation] || COLOR.gold;
+
+  return (
+    <div className="relative px-6 py-8 sm:px-10 sm:py-10" style={cardStyle}>
+      <p style={label}>คู่ครองตามฐานเดือน · 月支配偶</p>
+      <h3 className="mt-2 text-xl font-bold sm:text-2xl" style={{ color: COLOR.heading, fontFamily: "'Noto Serif Thai', serif" }}>
+        ลักษณะคู่ครองจากธาตุฐานเดือน
+      </h3>
+
+      <p className="mt-3 text-sm" style={{ color: COLOR.muted }}>
+        วิเคราะห์จากความสัมพันธ์ระหว่างธาตุประจำตัว (
+        <span className="font-semibold" style={{ color: ELEMENT_COLOR[dmElement] }}>
+          {ELEMENT_ZH[dmElement]} {ELEMENT_TH[dmElement]}
+        </span>
+        ) กับธาตุของฐานเดือน{" "}
+        <span className="font-semibold" style={{ color: COLOR.body }}>
+          {monthPillar.branch}
+        </span>{" "}
+        (
+        <span className="font-semibold" style={{ color: ELEMENT_COLOR[monthBranchElement] }}>
+          {ELEMENT_ZH[monthBranchElement]} {ELEMENT_TH[monthBranchElement]}
+        </span>
+        )
+      </p>
+
+      <div className="mt-5 p-4 rounded-sm" style={{ backgroundColor: "rgba(0,0,0,0.35)", border: `1px solid ${COLOR.cardBorder}` }}>
+        <p className="text-sm font-bold" style={{ color: relationColor }}>
+          {spouse.relation}
+        </p>
+        <p className="mt-2" style={bodyText}>
+          {spouse.trait}
+        </p>
+      </div>
+
+      <p className="mt-4 text-sm italic" style={{ color: COLOR.faint }}>
+        ตำราดั้งเดิมส่วนใหญ่นิยมใช้ฐานวัน (日支) เป็นวังคู่ครองหลัก การใช้ฐานเดือนเป็นมุมมองเสริมเพื่อการไตร่ตรอง ไม่ใช่การพยากรณ์ที่ตายตัว
+      </p>
+    </div>
+  );
+}
 function BranchRelations({ pillars, counts, dayMaster }) {
   const dmElement = dayMaster.stemElement;
   const s = computeDayMasterStrength(pillars, counts, dmElement);
@@ -2161,8 +2216,9 @@ function BaziFortuneApp() {
 
             <SeasonStrength pillars={result.pillars} counts={result.counts} dayMaster={result.dayMaster} />
 
-            <BranchRelations pillars={result.pillars} counts={result.counts} dayMaster={result.dayMaster} />
+            <SpousePalace pillars={result.pillars} dayMaster={result.dayMaster} />
 
+            <BranchRelations pillars={result.pillars} counts={result.counts} dayMaster={result.dayMaster} />
             <SpecialPattern pillars={result.pillars} counts={result.counts} dayMaster={result.dayMaster} />
 
             <div className="p-6 sm:p-8" style={cardStyle}>
