@@ -1571,7 +1571,7 @@ function SeasonStrength({ pillars, counts, dayMaster }) {
 }
 function SpousePalace({ pillars, dayMaster }) {
   const dmElement = dayMaster.stemElement;
-  const dayPillar = pillars[1];
+  const dayPillar = pillars[2];
   const dayBranchElement = dayPillar.branchElement;
 
   // ใช้ฟังก์ชันเดิมที่มีอยู่แล้ว (getSpousePalaceTrait) โดยเทียบธาตุประจำตัว
@@ -1579,8 +1579,8 @@ function SpousePalace({ pillars, dayMaster }) {
   const spouse = getSpousePalaceTrait(dmElement, dayBranchElement);
 
   const relationColorMap = {
-    "比劫 (ธาตุเดียวกัน)": ELEMENT_COLOR[dmElement],
-    "食傷 (เราสร้างเขา)": "#8FE39A",
+    "比劫 (ธาตุเดียวกัน)": "#8FE39A",
+    "食傷 (เราสร้างเขา)": ELEMENT_COLOR[dmElement],
     "印 (เขาสร้างเรา)": ELEMENT_COLOR[dayBranchElement],
     "財 (เราควบคุมเขา)": COLOR.gold,
     "官殺 (เขาควบคุมเรา)": "#F0958C",
