@@ -1137,39 +1137,60 @@ const label = { fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "
 const bodyText = { color: COLOR.body, lineHeight: 1.7 };
 const cardStyle = { backgroundColor: COLOR.card, border: `1px solid ${COLOR.cardBorder}`, borderRadius: "0.25rem" };
 
+// ใช้ร่วมกันทุกหัวข้อ: คืนค่า "ธาตุที่เป็นคุณ/ควรระวัง" ชุดเดียว (ตามรูปดวงพิเศษถ้ามี ไม่งั้นตามหลักทั่วไป)
+function getFavorability(pillars, counts, dmElement) {
+  const rel = analyzeBranchRelations(pillars);
+  const pattern = computeSpecialPattern(pillars, counts, dmElement, rel.sanhe, rel.sanhui);
+  return pattern || computeDayMasterStrength(pillars, counts, dmElement);
+}
+
 function HowItWorks() {
   const [expanded, setExpanded] = useState(false);
   const steps = [
     {
-      q: "ทำไมต้องหา \"ธาตุประจำตัว\" ก่อนเป็นอันดับแรก",
-      a: "เพราะ Bazi มองว่าเสาวัน (โดยเฉพาะตัวอักษรฟ้าของเสาวัน) คือ \"ตัวตน\" ของเจ้าชะตา ส่วนอีกเจ็ดตัวอักษรที่เหลือคือ \"สภาพแวดล้อม\" ที่มากระทบตัวตนนั้น การจะบอกว่าสภาพแวดล้อมแบบไหนดีหรือไม่ดี จึงต้องรู้ก่อนว่า \"ตัวตน\" นี้คือธาตุอะไร เช่นเดียวกับที่ต้องรู้ก่อนว่าพืชชนิดใด ก่อนจะบอกได้ว่าดินแบบไหนหรือน้ำแค่ไหนถึงจะเหมาะกับมัน",
+      q: "ธาตุประจำตัวคืออะไร ทำไมต้องหาก่อน",
+      a: "คือธาตุของตัวอักษรบนในเสาวัน ใช้แทนตัวคุณเอง ส่วนตัวอักษรอีก 7 ตัวในดวงคือสิ่งแวดล้อมรอบตัว เมื่อรู้ว่าคุณคือธาตุอะไร จึงบอกได้ว่าธาตุไหนช่วยหนุนและธาตุไหนกดดัน",
     },
     {
-      q: "ทำไมต้องเช็ค \"กำลังธาตุ\" ว่าแข็งหรืออ่อน",
-      a: "เพราะสิ่งที่เป็นคุณกับคนธาตุแข็งจะตรงข้ามกับคนธาตุอ่อนโดยสิ้นเชิง — คนที่ธาตุประจำตัวแข็งแรงเกินมีพลังส่วนเกิน จึงต้องการช่องทาง \"ระบายออก\" (เหมือนคนแข็งแรงมากต้องออกกำลังกายเพื่อใช้พลังงานส่วนเกิน) ส่วนคนที่ธาตุประจำตัวอ่อนแอมีพลังไม่พอ จึงต้องการแรง \"เสริมเข้า\" ก่อน (เหมือนคนอ่อนแรงต้องพักฟื้นก่อนจะออกแรงเพิ่ม) นี่คือเหตุผลที่ธาตุเดียวกันอาจเป็นคุณกับคนหนึ่งแต่เป็นโทษกับอีกคนหนึ่ง ขึ้นอยู่กับกำลังธาตุประจำตัวของแต่ละคน",
+      q: "ธาตุประจำตัวแข็งหรืออ่อน ต่างกันอย่างไร",
+      a: "คนที่ธาตุแข็งมีพลังเหลือ จึงต้องมีทางระบายออก เช่น ลงมือทำ สร้างผลงาน หาเงิน ส่วนคนที่ธาตุอ่อนมีพลังไม่พอ จึงต้องการแรงเสริม เช่น คนช่วยเหลือ ความรู้ การพักฟื้น ธาตุเดียวกันจึงอาจดีกับคนหนึ่งแต่ไม่ดีกับอีกคน",
     },
     {
-      q: "ทำไมต้องดู \"ฤดูเกิด\" หรือฐานเดือนเป็นพิเศษ",
-      a: "เพราะฤดูกาลคือแรงสิ่งแวดล้อมที่หนักแน่นและสม่ำเสมอที่สุดที่ธาตุประจำตัวต้องเผชิญตลอดชีวิต ต่างจากธาตุอื่นในดวงที่ส่งผลแบบจุดต่อจุด ฐานเดือนจึงถูกให้น้ำหนักเป็นพิเศษในการชี้วัดว่าธาตุประจำตัว \"ได้จังหวะ\" หรือ \"สวนจังหวะ\" กับธรรมชาติรอบตัวหรือไม่ เหมือนพืชที่ปลูกถูกฤดูย่อมเติบโตง่ายกว่าพืชที่ปลูกผิดฤดู",
+      q: "ทำไมต้องดูฤดูเกิด",
+      a: "ฤดูเกิด (ดูจากเสาเดือน) เป็นแรงแวดล้อมที่หนักและสม่ำเสมอที่สุดต่อธาตุประจำตัว เหมือนต้นไม้ที่ปลูกถูกฤดูย่อมโตง่ายกว่า จึงให้น้ำหนักเสาเดือนเป็นพิเศษตอนตัดสินว่าแข็งหรืออ่อน",
     },
     {
-      q: "ทำไมนักษัตรที่ \"ประสาน\" หรือ \"刑 (ขัดแย้ง)\" กันถึงเปลี่ยนผลได้",
-      a: "เพราะธาตุในดวงไม่ได้ทำงานแยกส่วนกันเฉยๆ เมื่อนักษัตรบางคู่มาเจอกัน จะเกิดปฏิกิริยาต่อกันคล้ายสารเคมีที่ทำปฏิกิริยากัน บางคู่รวมพลังกันจนกลายเป็นธาตุใหม่ที่เข้มข้นกว่าเดิม (ประสาน) บางคู่ขัดแย้งเสียดสีกันจนเกิดความตึงเครียด (刑 ขัดแย้ง) การนับธาตุแบบตรงตัวอย่างเดียวจึงไม่พอ ต้องดูปฏิกิริยาระหว่างนักษัตรประกอบด้วยเสมอ",
-    },
-    {
-      q: "ทำไมบทบาท (十神) แต่ละอย่างถึงผูกกับด้านชีวิตที่ต่างกัน",
-      a: "เพราะแต่ละบทบาทคือความสัมพันธ์เชิงตรรกะระหว่างธาตุประจำตัวกับธาตุอื่น: ธาตุที่ \"ตัวตนควบคุมได้\" ก็เปรียบเหมือนทรัพยากรที่เราจัดการได้ตามใจ จึงผูกกับการเงิน ธาตุที่ \"มาควบคุมตัวตน\" ก็เปรียบเหมือนกฎเกณฑ์หรืออำนาจที่กดเราไว้ จึงผูกกับหน้าที่การงานและวินัย ธาตุที่ \"ตัวตนสร้างขึ้น\" ก็เหมือนผลงานหรือคำพูดที่เราแสดงออกมา จึงผูกกับความคิดสร้างสรรค์ ส่วนธาตุที่ \"เสริมตัวตน\" ก็เหมือนพ่อแม่ครูอาจารย์ที่ป้อนพลังให้เรา จึงผูกกับการเรียนรู้และครอบครัว ตรรกะเดียวกันนี้ถูกใช้ซ้ำในทุกหัวข้อของแอปนี้ ตั้งแต่อาชีพ ไปจนถึงวัยจรและปีจร",
+      q: "นักษัตรที่ประสานหรือขัดแย้งกัน หมายถึงอะไร",
+      a: "นักษัตรบางคู่ที่อยู่ในดวงเดียวกันจะมีปฏิกิริยาต่อกัน ถ้าประสานกัน ธาตุจะแรงขึ้น ถ้าขัดแย้งหรือปะทะกัน จะเกิดความตึงเครียดในเรื่องของตำแหน่งนั้น จึงต้องดูควบคู่กับการนับธาตุ",
     },
   ];
+  const roles = [
+    ["ธาตุเดียวกับคุณ", "พวกพ้อง", "เพื่อน ทีมงาน เครือข่าย"],
+    ["ธาตุที่สร้างคุณ", "ทรัพยากร (ผู้อุปถัมภ์)", "พ่อแม่ ครูอาจารย์ การเรียนรู้ การพักฟื้น"],
+    ["ธาตุที่คุณสร้าง", "การแสดงออก (ผลงาน)", "ความคิดสร้างสรรค์ การพูด การเขียน ลูกหลาน"],
+    ["ธาตุที่คุณควบคุมได้", "ทรัพย์สิน (ผลตอบแทน)", "เงิน ผลตอบแทน และคู่ครองของผู้ชาย"],
+    ["ธาตุที่ควบคุมคุณ", "อำนาจ (ความท้าทาย)", "งาน ตำแหน่ง กฎระเบียบ และคู่ครองของผู้หญิง"],
+  ];
+  const glossary = [
+    ["เสา (柱)", "ดวงมี 4 เสา คือ ปี เดือน วัน ยาม แต่ละเสามีตัวอักษรบน (ก้านฟ้า) และตัวอักษรล่าง (นักษัตร)"],
+    ["ธาตุประจำตัว (日主)", "ธาตุของตัวอักษรบนในเสาวัน ใช้แทนตัวคุณ"],
+    ["นักษัตร (地支)", "ตัวอักษรล่างของแต่ละเสา แทนนักษัตร 12 ตัว แต่ละตัวมีธาตุของตัวเอง"],
+    ["ประสาน (合)", "นักษัตรที่รวมพลังกัน ทำให้ธาตุแรงขึ้น ถ้ารวมกัน 3 ตัวเรียกว่าสามเหลี่ยมประสาน (三合 หรือซาฮะ) หรือสามร่วมฤดู (三会)"],
+    ["ปะทะ (冲 หรือชง)", "นักษัตรสองตัวที่อยู่ตรงข้ามกันบนวงล้อ 12 นักษัตร มักสะท้อนความเปลี่ยนแปลงหรือความตึงเครียด"],
+    ["ขัดแย้ง (刑) และแฝงร้าย (害)", "นักษัตรที่เสียดสีกันแบบเงียบๆ ไม่รุนแรงเท่าปะทะ แต่สะสมเป็นปัญหาเรื้อรังได้"],
+    ["วัยจร (大运) และปีจร (流年)", "วัยจรคือช่วง 10 ปีที่ธาตุแวดล้อมเปลี่ยนไป ปีจรคือธาตุประจำปีนั้นที่มากระทบดวง"],
+  ];
+
+  const innerBox = { backgroundColor: "rgba(0,0,0,0.3)", border: `1px solid ${COLOR.cardBorder}` };
 
   return (
     <div className="relative px-6 py-8 sm:px-10 sm:py-10" style={cardStyle}>
-      <p style={label}>หลักเหตุผลเบื้องหลังคำทำนายนี้</p>
+      <p style={label}>ก่อนอ่านผล</p>
       <h3 className="mt-2 text-xl font-bold sm:text-2xl" style={{ color: COLOR.heading, fontFamily: "'Noto Serif Thai', serif" }}>
-        ทำไมแอปนี้ถึงทำนายแบบนี้
+        ดวงนี้อ่านอย่างไร
       </h3>
       <p className="mt-3 text-sm" style={{ color: COLOR.muted }}>
-        ก่อนอ่านผลด้านล่าง เข้าใจตรรกะเบื้องหลัง 5 ข้อนี้ก่อน จะทำให้ทุกหัวข้อที่ตามมาเชื่อมโยงกันเป็นเหตุเป็นผล ไม่ใช่แค่ท่องความหมายแยกส่วน
+        อ่านเป็น 3 ขั้น: หาธาตุประจำตัว, ดูว่าแข็งหรืออ่อน, แล้วดูว่าธาตุอื่นช่วยหรือกดดัน ผลทุกหัวข้อด้านล่างมาจาก 3 ขั้นนี้
       </p>
 
       <button
@@ -1178,17 +1199,42 @@ function HowItWorks() {
         className="mt-3 text-sm font-semibold"
         style={{ color: COLOR.gold, textDecoration: "underline" }}
       >
-        {expanded ? "ซ่อนคำอธิบาย ▲" : "กดเพื่ออ่านคำอธิบาย ▾"}
+        {expanded ? "ซ่อนคำอธิบาย ▲" : "กดเพื่ออ่านคำอธิบายและความหมายของศัพท์ ▾"}
       </button>
 
       {expanded && (
         <div className="mt-5 space-y-4">
           {steps.map((s, i) => (
-            <div key={i} className="p-4 rounded-sm" style={{ backgroundColor: "rgba(0,0,0,0.3)", border: `1px solid ${COLOR.cardBorder}` }}>
+            <div key={i} className="p-4 rounded-sm" style={innerBox}>
               <p className="text-sm font-bold" style={{ color: COLOR.gold }}>{s.q}</p>
               <p className="mt-2 text-sm" style={bodyText}>{s.a}</p>
             </div>
           ))}
+
+          <div className="p-4 rounded-sm" style={innerBox}>
+            <p className="text-sm font-bold" style={{ color: COLOR.gold }}>ธาตุอื่นแต่ละแบบ เกี่ยวกับเรื่องอะไรในชีวิต</p>
+            <p className="mt-2 text-xs" style={{ color: COLOR.muted }}>
+              ใช้ตรรกะนี้ซ้ำในทุกหัวข้อ ตั้งแต่การเงิน การงาน ไปจนถึงวัยจรและปีจร
+            </p>
+            <div className="mt-3 space-y-2">
+              {roles.map((r, i) => (
+                <p key={i} className="text-sm" style={bodyText}>
+                  <span className="font-semibold" style={{ color: COLOR.heading }}>{r[0]}</span> = {r[1]} · {r[2]}
+                </p>
+              ))}
+            </div>
+          </div>
+
+          <div className="p-4 rounded-sm" style={innerBox}>
+            <p className="text-sm font-bold" style={{ color: COLOR.gold }}>ศัพท์ที่ควรรู้</p>
+            <div className="mt-3 space-y-2">
+              {glossary.map((g, i) => (
+                <p key={i} className="text-sm" style={bodyText}>
+                  <span className="font-semibold" style={{ color: COLOR.heading }}>{g[0]}</span> — {g[1]}
+                </p>
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -1202,23 +1248,34 @@ function Summary({ pillars, counts, dayMaster, dayStemIdx }) {
   const { sanhe, sanhui, sanxing } = analyzeBranchRelations(pillars);
   const pattern = computeSpecialPattern(pillars, counts, dmElement, sanhe, sanhui);
   const favSource = pattern ? pattern.favorable : s.favorable;
+  const unfavSource = pattern ? pattern.unfavorable : s.unfavorable;
 
   const relationPhrases = [];
   sanhe.forEach((g) =>
     relationPhrases.push(
-      `นักษัตร${g.pillars.map((p) => p.label).join("และ")}ประสานกันเป็นธาตุ${ELEMENT_TH[g.element]}แบบ${g.full ? "เต็มรูป" : "กึ่งประสาน"}`
+      `นักษัตรเสา${g.pillars.map((p) => p.label).join("และ")}ประสานกันเป็นธาตุ${ELEMENT_TH[g.element]} (${g.full ? "เต็มรูป" : "กึ่งประสาน"})`
     )
   );
   sanhui.forEach((g) =>
-    relationPhrases.push(`นักษัตร${g.pillars.map((p) => p.label).join("และ")}ร่วมฤดูกันเป็นธาตุ${ELEMENT_TH[g.element]}`)
+    relationPhrases.push(`นักษัตรเสา${g.pillars.map((p) => p.label).join("และ")}ร่วมฤดูกันเป็นธาตุ${ELEMENT_TH[g.element]}`)
   );
   sanxing.forEach((g) =>
-    relationPhrases.push(`นักษัตร${g.pillars.map((p) => p.label).join("และ")}เข้า 刑 (ขัดแย้ง) กันแบบ${g.name}`)
+    relationPhrases.push(`นักษัตรเสา${g.pillars.map((p) => p.label).join("และ")}ขัดแย้งกัน (${g.name})`)
   );
-  const relationSentence =
-    relationPhrases.length > 0
-      ? `นอกจากนี้ ${relationPhrases.join("; ")} ซึ่งมีผลต่อภาพรวมของธาตุในดวงเพิ่มเติมจากการนับตรงตัว `
-      : "ในสี่เสาชะตานี้ไม่มีนักษัตรที่ประสานหรือขัดแย้งกันเป็นพิเศษ ธาตุแต่ละตัวจึงส่งผลตามน้ำหนักที่นับได้ตรงไปตรงมา ";
+
+  const chip = (f, good) => (
+    <span
+      key={f.element + f.roleKey}
+      className="rounded-full px-3 py-1 text-xs font-semibold"
+      style={{
+        backgroundColor: "rgba(0,0,0,0.35)",
+        color: good ? ELEMENT_COLOR[f.element] : COLOR.muted,
+        border: `1px solid ${good ? ELEMENT_COLOR[f.element] : COLOR.cardBorder}`,
+      }}
+    >
+      {ELEMENT_ZH[f.element]} {ELEMENT_TH[f.element]} · {f.role}
+    </span>
+  );
 
   return (
     <div className="relative px-6 py-8 sm:px-10 sm:py-10" style={{ ...cardStyle, background: "linear-gradient(160deg, #2c2417 0%, #1c1712 100%)" }}>
@@ -1228,37 +1285,42 @@ function Summary({ pillars, counts, dayMaster, dayStemIdx }) {
       </h3>
 
       <p className="mt-4" style={bodyText}>
-        ธาตุประจำตัว (日主) ของคุณคือ{" "}
+        ธาตุประจำตัวของคุณคือ{" "}
         <span className="font-bold" style={{ color: ELEMENT_COLOR[dmElement] }}>
           {dayMaster.stem} ({ELEMENT_TH[dmElement]})
         </span>{" "}
-        มีบุคลิกต้นแบบแบบ "{profile.archetype}" เกิดใน{s.seasonName} ซึ่ง{s.seasonSupports ? "ส่งเสริม" : "ไม่ส่งเสริม"}
-        ธาตุประจำตัวโดยตรงจากฐานเดือน เมื่อรวมกับแรงหนุนจากธาตุเดียวกันและธาตุที่เสริมพลังกันอีก {s.supportTotal} จาก 8
-        ตัวอักษรในดวงชะตา ทำให้ธาตุประจำตัวอยู่ในระดับ{s.isStrong ? '"แข็งแรง"' : '"อ่อนแอ"'}ตามหลักการทั่วไป
-        {pattern && (
-          <>
-            {" "}
-            อย่างไรก็ตาม เนื่องจาก{pattern.desc} ดวงนี้จึงเข้าข่ายรูปดวงพิเศษ{" "}
-            <span className="font-bold" style={{ color: COLOR.gold }}>
-              {pattern.title}
-            </span>{" "}
-            ทำให้การพิจารณาธาตุที่เป็นคุณ-ควรระวังพลิกกลับจากกฎทั่วไปดังกล่าว
-          </>
-        )}
-        {" "}
-        {relationSentence}
-        โดยรวมแล้ว ธาตุที่เป็นคุณกับดวงนี้เรียงตามลำดับความสำคัญคือ{" "}
-        {favSource.map((f, i) => (
-          <span key={f.roleKey}>
-            <span className="font-bold" style={{ color: ELEMENT_COLOR[f.element] }}>
-              {ELEMENT_TH[f.element]} ({f.role})
-            </span>
-            {i < favSource.length - 1 ? ", " : " "}
-          </span>
-        ))}
-        ซึ่งหากส่งเสริมธาตุเหล่านี้อย่างสม่ำเสมอในชีวิตประจำวัน ตามรายละเอียดกิจกรรมและวัยจรที่แสดงไว้ด้านล่าง
-        จะช่วยให้ดวงชะตาสมดุลและราบรื่นมากขึ้นในระยะยาว
+        เกิดใน{s.seasonName} ซึ่ง{s.seasonSupports ? "หนุน" : "ไม่หนุน"}ธาตุประจำตัว และมีแรงหนุนรวม {s.supportTotal} จาก 8 ตัวอักษร
+        ธาตุประจำตัวจึง{s.isStrong ? "แข็งแรง" : "อ่อนแอ"}
       </p>
+
+      {pattern && (
+        <p className="mt-3" style={bodyText}>
+          ดวงนี้เข้ารูปพิเศษ{" "}
+          <span className="font-bold" style={{ color: COLOR.gold }}>{pattern.title}</span>{" "}
+          จึงใช้ธาตุที่เป็นคุณตามรูปนี้ แทนหลักทั่วไป (ดูรายละเอียดที่หัวข้อรูปดวงพิเศษ)
+        </p>
+      )}
+
+      {relationPhrases.length > 0 && (
+        <p className="mt-3 text-sm" style={{ color: COLOR.muted }}>
+          ความสัมพันธ์เด่นในดวง: {relationPhrases.join(" · ")}
+        </p>
+      )}
+
+      <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <p style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "#8FE39A", fontWeight: 600 }}>
+            ธาตุที่เป็นคุณ
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">{favSource.map((f) => chip(f, true))}</div>
+        </div>
+        <div>
+          <p style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "#F0958C", fontWeight: 600 }}>
+            ธาตุที่ควรระวัง
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">{unfavSource.map((f) => chip(f, false))}</div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1291,7 +1353,7 @@ function LifeDomains({ pillars, counts, dayMaster, gender }) {
 
   const loveRoleKey = gender === "female" ? "officer" : "wealth";
   const health = analyzeNatalHealth(counts);
-  const pillarPairs = analyzeNatalPillarPairs(pillars);
+  const pillarPairs = analyzeNatalPillarPairs(pillars).filter((r) => r.type !== "sanhe" && r.type !== "sanhui");
 
   const domains = [
     { key: "finance", title: "การเงิน", roleKeys: ["wealth"] },
@@ -1303,13 +1365,7 @@ function LifeDomains({ pillars, counts, dayMaster, gender }) {
   ];
 
   const unfavRoleKeys = unfavSource.map((f) => f.roleKey);
-  const watchItems = [
-    ...unfavRoleKeys.map((rk) => ROLE_CAUTION_TH[rk]),
-    ...sanxing.map((g) => `นักษัตร${g.pillars.map((p) => p.label).join("และ")}เข้า 刑 (ขัดแย้ง) กันแบบ "${g.name}" — ${g.meaning}`),
-  ];
-  if (pattern && (pattern.type === "followStrong" || pattern.type === "followWeak")) {
-    watchItems.unshift(`รูปดวงพิเศษ ${pattern.title}: ${pattern.meaning}`);
-  }
+  const watchItems = unfavRoleKeys.map((rk) => ROLE_CAUTION_TH[rk]);
 
   return (
     <div className="relative px-6 py-8 sm:px-10 sm:py-10" style={cardStyle}>
@@ -1318,7 +1374,7 @@ function LifeDomains({ pillars, counts, dayMaster, gender }) {
         การเงิน · การงาน · ครอบครัว · ความสัมพันธ์ · ความรัก · สุขภาพ
       </h3>
       <p className="mt-2 text-sm" style={{ color: COLOR.muted }}>
-        แต่ละด้านด้านล่างนี้ใช้ตรรกะเดียวกับที่อธิบายไว้ในหัวข้อ "หลักเหตุผลเบื้องหลังคำทำนายนี้": ถ้าธาตุ/บทบาทที่ผูกกับด้านนั้นเป็นคุณต่อธาตุประจำตัว ด้านนั้นก็มีแนวโน้มดี แต่ถ้าเป็นธาตุที่ควรระวัง ด้านนั้นก็ควรระมัดระวังตามไปด้วย
+        แต่ละด้านดูจากว่าธาตุที่เกี่ยวข้องเป็นคุณหรือควรระวังสำหรับคุณ ถ้าเป็นคุณ ด้านนั้นมีแนวโน้มดี ถ้าควรระวัง ด้านนั้นควรเผื่อใจไว้
       </p>
 
       <div className="mt-5 space-y-5">
@@ -1348,7 +1404,7 @@ function LifeDomains({ pillars, counts, dayMaster, gender }) {
   <div>
     <p className="text-sm font-bold" style={{ color: COLOR.gold }}>ความสัมพันธ์ระหว่างหลักในดวง</p>
     <p className="mt-1 text-xs" style={{ color: COLOR.muted }}>
-      เมื่อสองหลักในดวงเดิมประสาน (合/三合/三会) หรือขัดแย้งกันเอง (冲/害/刑) มักส่งผลต่อความสัมพันธ์และบทบาทของคนในตำแหน่งนั้นๆ ต่อชีวิตของเจ้าชะตาโดยตรง
+      เมื่อสองหลักในดวงประสานกัน (合) หรือขัดแย้งกัน (冲/害/刑) จะกระทบเรื่องของคนในตำแหน่งนั้น เช่น หลักปี = ผู้ใหญ่ในบ้าน หลักวัน = ตัวคุณและคู่ครอง (กลุ่มประสานสามนักษัตรดูที่หัวข้อความสัมพันธ์ระหว่างนักษัตร)
     </p>
     <div className="mt-2 space-y-2">
       {pillarPairs.map((r, i) => {
@@ -1476,11 +1532,15 @@ function Archetype({ dayMaster, dayStemIdx, counts }) {
 function SeasonStrength({ pillars, counts, dayMaster }) {
   const dmElement = dayMaster.stemElement;
   const s = computeDayMasterStrength(pillars, counts, dmElement);
+  const { sanhe, sanhui } = analyzeBranchRelations(pillars);
+  const pattern = computeSpecialPattern(pillars, counts, dmElement, sanhe, sanhui);
   const monthPillar = pillars[1];
 
   const strongColor = "#8FE39A";
   const weakColor = "#F0958C";
   const verdictColor = s.isStrong ? strongColor : weakColor;
+  const boxLabel = { fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.15em", color: COLOR.gold, fontWeight: 600 };
+  const boxStyle = { backgroundColor: "rgba(0,0,0,0.35)", border: `1px solid ${COLOR.cardBorder}` };
 
   return (
     <div className="relative px-6 py-8 sm:px-10 sm:py-10" style={cardStyle}>
@@ -1491,84 +1551,41 @@ function SeasonStrength({ pillars, counts, dayMaster }) {
       </h3>
 
       <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="p-4 rounded-sm" style={{ backgroundColor: "rgba(0,0,0,0.35)", border: `1px solid ${COLOR.cardBorder}` }}>
-          <p style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.15em", color: COLOR.gold, fontWeight: 600 }}>
-            ฐานเดือน (得令)
-          </p>
+        <div className="p-4 rounded-sm" style={boxStyle}>
+          <p style={boxLabel}>ฤดูเกิดหนุนไหม (得令)</p>
           <p className="mt-2 text-sm" style={bodyText}>
             เสาเดือน {monthPillar.stem}{monthPillar.branch} มีธาตุ{" "}
             <span style={{ color: ELEMENT_COLOR[s.monthBranchElement] }} className="font-bold">
               {ELEMENT_ZH[s.monthBranchElement]} {ELEMENT_TH[s.monthBranchElement]}
             </span>{" "}
-            ซึ่ง{s.seasonSupports ? "ส่งเสริม" : "ไม่ส่งเสริม"}ธาตุประจำตัว ({ELEMENT_TH[dmElement]})
+            ซึ่ง{s.seasonSupports ? "หนุน" : "ไม่หนุน"}ธาตุประจำตัว ({ELEMENT_TH[dmElement]})
           </p>
         </div>
-        <div className="p-4 rounded-sm" style={{ backgroundColor: "rgba(0,0,0,0.35)", border: `1px solid ${COLOR.cardBorder}` }}>
-          <p style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.15em", color: COLOR.gold, fontWeight: 600 }}>
-            แรงหนุนรวมในดวง
-          </p>
+        <div className="p-4 rounded-sm" style={boxStyle}>
+          <p style={boxLabel}>แรงหนุนรวมในดวง</p>
           <p className="mt-2 text-sm" style={bodyText}>
-            ธาตุ{ELEMENT_TH[dmElement]}และธาตุที่เสริมกัน ({ELEMENT_TH[dmElement]} + {ELEMENT_TH[GENERATOR_OF[dmElement]]})
-            รวมปรากฏ <span className="font-bold" style={{ color: COLOR.heading }}>{s.supportTotal} จาก 8</span> ตัวอักษร
+            ธาตุ{ELEMENT_TH[dmElement]}และธาตุที่สร้างธาตุ{ELEMENT_TH[dmElement]} ({ELEMENT_TH[GENERATOR_OF[dmElement]]}) รวมกัน{" "}
+            <span className="font-bold" style={{ color: COLOR.heading }}>{s.supportTotal} จาก 8</span> ตัวอักษร
+            (ต้องหนุนจากฤดูด้วยและเกิน 4 ตัว จึงนับว่าแข็งแรง)
           </p>
         </div>
       </div>
 
       <p className="mt-6 text-sm" style={bodyText}>
-        {s.isStrong ? (
-          <>
-            เมื่อธาตุประจำตัวได้ทั้งกำลังจากฤดูเกิดและแรงหนุนจากธาตุอื่นในดวงเกินครึ่ง ถือว่า
-            <span className="font-bold" style={{ color: strongColor }}> ธาตุประจำตัวแข็งแรง </span>
-            เจ้าชะตามีพลังภายในเหลือเฟือ เหมาะกับการนำพลังนั้นไปใช้ผ่านการลงมือทำ การแสดงออก การสร้างผลงานหรือทรัพย์สิน
-            หรือรับบทบาทที่ต้องใช้อำนาจและความรับผิดชอบ มากกว่าจะพึ่งพาแรงหนุนเพิ่มเติมอีก
-          </>
-        ) : (
-          <>
-            เมื่อฐานเดือนไม่ส่งเสริม หรือแรงหนุนในดวงยังไม่ถึงครึ่ง ถือว่า
-            <span className="font-bold" style={{ color: weakColor }}> ธาตุประจำตัวอ่อนแอ </span>
-            เจ้าชะตาต้องอาศัยแรงสนับสนุนจากธาตุเดียวกันและธาตุที่เสริมพลัง เช่น ผู้คนรอบข้าง พันธมิตร
-            หรือทรัพยากรที่มั่นคง ก่อนจะออกไปใช้พลังงานกับโลกภายนอก
-          </>
-        )}
+        {s.isStrong
+          ? "ธาตุประจำตัวมีพลังเหลือ จึงเหมาะกับการใช้พลังออกไปข้างนอก เช่น ลงมือทำ สร้างผลงาน หาทรัพย์ หรือรับความรับผิดชอบ"
+          : "ธาตุประจำตัวยังมีพลังไม่พอ จึงต้องการแรงเสริมจากคนรอบข้างและทรัพยากรที่มั่นคงก่อน แล้วค่อยออกแรงกับโลกภายนอก"}
       </p>
 
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div>
-          <p style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.15em", color: strongColor, fontWeight: 600 }}>
-            ธาตุที่เป็นคุณ
-          </p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {s.favorable.map((f) => (
-              <span
-                key={f.element + f.role}
-                className="rounded-full px-3 py-1 text-xs font-semibold"
-                style={{ backgroundColor: "rgba(0,0,0,0.35)", color: ELEMENT_COLOR[f.element], border: `1px solid ${ELEMENT_COLOR[f.element]}` }}
-              >
-                {ELEMENT_ZH[f.element]} {ELEMENT_TH[f.element]} · {f.role}
-              </span>
-            ))}
-          </div>
-        </div>
-        <div>
-          <p style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.15em", color: weakColor, fontWeight: 600 }}>
-            ธาตุที่ควรระวัง
-          </p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {s.unfavorable.map((f) => (
-              <span
-                key={f.element + f.role}
-                className="rounded-full px-3 py-1 text-xs font-semibold"
-                style={{ backgroundColor: "rgba(0,0,0,0.35)", color: COLOR.muted, border: `1px solid ${COLOR.cardBorder}` }}
-              >
-                {ELEMENT_ZH[f.element]} {ELEMENT_TH[f.element]} · {f.role}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
+      {pattern && (
+        <p className="mt-3 text-sm font-semibold" style={{ color: COLOR.gold }}>
+          หมายเหตุ: ผลข้างต้นเป็นการคำนวณตามหลักทั่วไป แต่ดวงนี้เข้ารูปดวงพิเศษ จึงใช้ธาตุที่เป็นคุณตามรูปดวงพิเศษ (ดูสรุปภาพรวมและหัวข้อรูปดวงพิเศษ)
+        </p>
+      )}
     </div>
   );
 }
+
 function SpousePalace({ pillars, dayMaster }) {
   const dmElement = dayMaster.stemElement;
   const dayPillar = pillars[2];
@@ -1589,7 +1606,7 @@ function SpousePalace({ pillars, dayMaster }) {
 
   return (
     <div className="relative px-6 py-8 sm:px-10 sm:py-10" style={cardStyle}>
-      <p style={label}>คู่ครองตามฐานวัน · 月支配偶</p>
+      <p style={label}>คู่ครองตามเสาวัน · 日支配偶</p>
       <h3 className="mt-2 text-xl font-bold sm:text-2xl" style={{ color: COLOR.heading, fontFamily: "'Noto Serif Thai', serif" }}>
         ลักษณะคู่ครองจากธาตุฐานวัน
       </h3>
@@ -1620,7 +1637,7 @@ function SpousePalace({ pillars, dayMaster }) {
       </div>
 
       <p className="mt-4 text-sm italic" style={{ color: COLOR.faint }}>
-        ตำราดั้งเดิมส่วนใหญ่นิยมใช้ฐานวัน (日支) เป็นวังคู่ครองหลัก 
+        ตำราส่วนใหญ่ใช้นักษัตรของเสาวัน (日支) เป็นตำแหน่งของคู่ครอง เป็นกรอบเชิงสัญลักษณ์เพื่อการไตร่ตรองและความบันเทิง
       </p>
     </div>
   );
@@ -1628,8 +1645,9 @@ function SpousePalace({ pillars, dayMaster }) {
 function BranchRelations({ pillars, counts, dayMaster }) {
   const dmElement = dayMaster.stemElement;
   const s = computeDayMasterStrength(pillars, counts, dmElement);
-  const favEls = new Set(s.favorable.map((f) => f.element));
-  const unfavEls = new Set(s.unfavorable.map((f) => f.element));
+  const fav = getFavorability(pillars, counts, dmElement);
+  const favEls = new Set(fav.favorable.map((f) => f.element));
+  const unfavEls = new Set(fav.unfavorable.map((f) => f.element));
   const { sanhe, sanhui, sanxing, unrelated } = analyzeBranchRelations(pillars);
 
   return (
@@ -1760,63 +1778,28 @@ function SpecialPattern({ pillars, counts, dayMaster }) {
             正格 · รูปดวงปกติ
           </h3>
           <p className="mt-3" style={bodyText}>
-            ดวงนี้ไม่เข้าเงื่อนไขรูปดวงพิเศษ (ธาตุประจำตัวไม่ได้แข็งหรืออ่อนสุดขั้ว และไม่มีการประสานนักษัตรเต็มรูปในธาตุเดียวกับตัวเอง)
-            จึงให้วิเคราะห์ตามหลักกำลังธาตุและธาตุที่เป็นคุณ-ควรระวังตามที่แสดงไว้ด้านบนได้ตามปกติ
+            ดวงนี้ไม่เข้าเงื่อนไขรูปดวงพิเศษ (ธาตุประจำตัวไม่ได้แข็งหรืออ่อนสุดขั้ว) จึงอ่านตามหลักทั่วไปได้เลย
           </p>
         </>
       ) : (
         <>
-                    <div className="mt-2 flex flex-wrap items-center gap-2">
+          <div className="mt-2 flex flex-wrap items-center gap-2">
             <h3 className="text-xl font-bold sm:text-2xl" style={{ color: COLOR.heading, fontFamily: "'Noto Serif Thai', serif" }}>
               {pattern.title}
             </h3>
             <span
-              className="rounded-full px-2.5 py-1 text-[0.65rem] font-semibold"
+              className="rounded-full px-2.5 py-1 text-xs font-semibold"
               style={{ backgroundColor: "rgba(0,0,0,0.35)", color: COLOR.gold, border: `1px solid ${COLOR.gold}` }}
             >
               {PATTERN_CATEGORY_TH[pattern.type] || "特殊格局"}
             </span>
           </div>
-          <p className="mt-1 text-sm font-semibold" style={{ color: ELEMENT_COLOR[pattern.newElement || dmElement] }}>{pattern.desc}</p>          <p className="mt-4" style={bodyText}>{pattern.meaning}</p>
+          <p className="mt-1 text-sm font-semibold" style={{ color: ELEMENT_COLOR[pattern.newElement || dmElement] }}>{pattern.desc}</p>
+          <p className="mt-4" style={bodyText}>{pattern.meaning}</p>
 
           <p className="mt-5 text-sm font-semibold" style={{ color: COLOR.gold }}>
-            ⚠ รูปดวงพิเศษนี้จะแทนที่ข้อสรุป "ธาตุที่เป็นคุณ / ควรระวัง" ในส่วนกำลังธาตุและคำทำนายด้านบนและด้านล่าง
+            รูปดวงนี้ใช้แทนหลักทั่วไปในทุกหัวข้อ ธาตุที่เป็นคุณและควรระวังตามรูปนี้แสดงไว้ในสรุปภาพรวมด้านบนแล้ว
           </p>
-
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <p style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "#8FE39A", fontWeight: 600 }}>
-                ธาตุที่เป็นคุณ (ตามรูปดวงพิเศษ)
-              </p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {pattern.favorable.map((f) => (
-                  <span
-                    key={f.element + f.roleKey}
-                    className="rounded-full px-3 py-1 text-xs font-semibold"
-                    style={{ backgroundColor: "rgba(0,0,0,0.35)", color: ELEMENT_COLOR[f.element], border: `1px solid ${ELEMENT_COLOR[f.element]}` }}
-                  >
-                    {ELEMENT_ZH[f.element]} {ELEMENT_TH[f.element]} · {f.role}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div>
-              <p style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "#F0958C", fontWeight: 600 }}>
-                ธาตุที่ควรระวัง (ตามรูปดวงพิเศษ)
-              </p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {pattern.unfavorable.map((f) => (
-                  <span
-                    key={f.element + f.roleKey}
-                    className="rounded-full px-3 py-1 text-xs font-semibold"
-                    style={{ backgroundColor: "rgba(0,0,0,0.35)", color: COLOR.muted, border: `1px solid ${COLOR.cardBorder}` }}
-                  >
-                    {ELEMENT_ZH[f.element]} {ELEMENT_TH[f.element]} · {f.role}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
         </>
       )}
     </div>
@@ -1929,7 +1912,7 @@ function LuckPillars({ date, gender, pillars, counts, dayMaster }) {
                             <span style={{ color: ELEMENT_COLOR[y.branchElement] }}>{y.branch}</span>
                           </span>
                           <span className="text-xs font-bold" style={{ color: y.verdictColor }}>
-                            ความสมพงษ์: {y.verdict} {yExpanded ? "▲" : "▾"}
+                            ภาพรวม: {y.verdict} {yExpanded ? "▲" : "▾"}
                           </span>
                         </button>
                         {yExpanded && (
@@ -1989,10 +1972,8 @@ function LuckPillars({ date, gender, pillars, counts, dayMaster }) {
 }
 
 function Interpretation({ pillars, counts, dayMaster }) {
-  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-  const strongest = sorted[0];
   const dmElement = dayMaster.stemElement;
-  const s = computeDayMasterStrength(pillars, counts, dmElement);
+  const favSource = getFavorability(pillars, counts, dmElement).favorable;
 
   return (
     <div className="relative px-6 py-8 sm:px-10 sm:py-10" style={cardStyle}>
@@ -2002,16 +1983,13 @@ function Interpretation({ pillars, counts, dayMaster }) {
       >
         命
       </div>
-            <p style={label}>คำทำนาย</p>
+      <p style={label}>วิธีเสริมดวงในชีวิตประจำวัน</p>
       <h3 className="mt-2 text-xl font-bold sm:text-2xl" style={{ color: COLOR.heading, fontFamily: "'Noto Serif Thai', serif" }}>
-        ธาตุที่ให้คุณต่อชีวิตของคุณ
+        ทำอะไรได้บ้างเพื่อเสริมธาตุที่เป็นคุณ
       </h3>
 
-      <p className="mt-6" style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "#8FE39A", fontWeight: 600 }}>
-        ธาตุที่ให้คุณ เรียงตามลำดับความสำคัญ
-      </p>
-      <ol className="mt-3 space-y-4">
-        {s.favorable.map((f, i) => (
+      <ol className="mt-5 space-y-4">
+        {favSource.map((f, i) => (
           <li key={f.roleKey} className="flex gap-3">
             <span
               className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold"
@@ -2233,7 +2211,7 @@ function BaziFortuneApp() {
         )}
 
         <p className="mt-14 text-center text-xs" style={{ color: COLOR.faint }}>
-          การคำนวณเดือนและยามในที่นี้เป็นการประมาณตามวันที่ปฏิทิน ไม่ได้อิงจุดเปลี่ยนฤดูกาลที่แม่นยำ 100% ผลลัพธ์ที่ใกล้ช่วงเปลี่ยนฤดูอาจคลาดเคลื่อนเล็กน้อยเมื่อเทียบกับการคำนวณแบบมืออาชีพ
+          เสาปีและเสาเดือนคำนวณจากจุดเปลี่ยนฤดูทางดาราศาสตร์ ส่วนเสายามใช้เวลาที่กรอกโดยตรง ไม่ปรับตามตำแหน่งที่เกิด และอายุเริ่มวัยจรเป็นค่าประมาณ ผลอาจต่างจากตำราหรือโปรแกรมมืออาชีพเล็กน้อย โดยเฉพาะคนที่เกิดใกล้วันเปลี่ยนเดือน
         </p>
       </div>
     </div>
